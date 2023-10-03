@@ -16,6 +16,8 @@ bool Program::Link(const std::vector<ShaderPtr>& shaders)
     // 쉐이더의 id값을 하나하나 세팅해줌
     // C++11 부터 이런 for 문 사용 가능! C++ STL Collection class(vector, set, map과 같은 iterator가 있는 애들)은 사용 가능!
     // shader 안에 shaders가 하나하나 들어옴..
+
+    
     for (auto& shader: shaders)
         glAttachShader(m_program, shader->Get());
 

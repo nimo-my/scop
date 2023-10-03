@@ -10,12 +10,11 @@ ContextUPtr Context::Create()
 
 bool Context::Init() 
 {
-    float vertices[] = {
-        
-        0.5f, 0.5f, 0.0f, // top right
-        0.5f, -0.5f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f, // bottom left
-        -0.5f, 0.5f, 0.0f, // top left
+	float vertices[] = {
+    0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // top right, red
+    0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom right, green
+    -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom left, blue
+    -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, // top left, yellow
     };
 
     uint32_t indices[] ={
@@ -28,20 +27,21 @@ bool Context::Init()
     m_vertexLayout = VertexLayout::Create();
 
     // [2] VBO binding :: 버텍스 버퍼 생성(generate)
-    m_vertexBuffer = Buffer::CreateWithData(GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertices, sizeof(float) * 12);
+    m_vertexBuffer = Buffer::CreateWithData(GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertices, sizeof(float) * 24);
 
 
 
     // [3] Vertex attribute setting
     // vertices의 위치를 각각 어떻게 구성할것인지! layout = x의 x에 들어오는 값!
     // 정점 attribute 중 n번째를 사용하도록 (0번 attribute를 사용할거다!)
-    m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
-
+    // m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
+    m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, 0); // x,y,z
+    m_vertexLayout->SetAttrib(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, sizeof(float) * 3);// r,g,b
 
     m_indexBuffer = Buffer::CreateWithData(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices, sizeof(float) * 6);
 
-    ShaderPtr vertShader = Shader::CreateFromFile("./shader/simple.vs", GL_VERTEX_SHADER);
-    ShaderPtr fragShader = Shader::CreateFromFile("./shader/simple.fs", GL_FRAGMENT_SHADER);
+    ShaderPtr vertShader = Shader::CreateFromFile("./shader/per_vertex_color.vs", GL_VERTEX_SHADER);
+    ShaderPtr fragShader = Shader::CreateFromFile("./shader/per_vertex_color.fs", GL_FRAGMENT_SHADER);
 
     if (!vertShader || !fragShader)
         return false;
@@ -52,6 +52,11 @@ bool Context::Init()
     if (!m_program)
         return false;
     SPDLOG_INFO("program id: {}", m_program->Get());
+
+    // auto loc = glGetUniformLocation(m_program->Get(), "color"); // simple.vs가서 color를 찾아서 loc에 정수를 할당해줌.
+    // m_program->Use();
+    // glUniform4f(loc, 0.0f, 1.0f, 0.0f, 1.0f); // 해당 위치에 1101을 넣어줘라! (rgba 값으로 들어가니까 노란색으로 나올 것! )
+
 
     glClearColor(0.1f, 0.2f, 0.3f, 0.0f);
 
@@ -69,10 +74,14 @@ void Context::Render()
     // 색상버퍼 초기화
     glClear(GL_COLOR_BUFFER_BIT);
 
-    // 그림그리는 코드
-    m_program->Use();
+    // // 그림그리는 코드
+    // m_program->Use();
 
-    // glDrawArrays(GL_TRIANGLES, 0, 6);
-    // glDrawArrays(GL_LINE_STRIP, 0, 3);
+    // // glDrawArrays(GL_TRIANGLES, 0, 6);
+    // // glDrawArrays(GL_LINE_STRIP, 0, 3);
+    // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+    m_program->Use();    
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
 }

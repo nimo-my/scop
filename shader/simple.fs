@@ -1,6 +1,9 @@
 #version 330 core
-out vec4 fragColor;
+
+// in vec4 vertexColor; // vs로부터 입력된 변수
+uniform vec4 color;
+out vec4 fragColor; // 최종 출력 색상
 
 void main() {
-  fragColor = vec4(1.0, 0.0, 0.0, 1.0);
+  fragColor = color;
 }
