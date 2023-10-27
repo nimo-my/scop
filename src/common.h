@@ -19,4 +19,4 @@ using klassName ## WPtr = std::weak_ptr<klassName>;
 
 std::optional<std::string> LoadTextFile(const std::string& filename);
 
-#endif // __COMMON_H__
+#endif // __COMMON_H__ﬁ

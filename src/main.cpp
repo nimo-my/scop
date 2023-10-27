@@ -1,12 +1,17 @@
 #include "context.h"
 #include <iostream>
+#include <spdlog/spdlog.h>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 
-// #include <glad/glad.h>
-// #include <GLFW/glfw3.h>
+void OnFramebufferSizeChange(GLFWwindow* window, int width, int height) {
+  SPDLOG_INFO("framebuffer size changed: ({} x {})", width, height);
+  auto context = reinterpret_cast<Context*>(glfwGetWindowUserPointer(window));
+  context->Reshape(width, height);
+}
 
 // 키 입력!
-void OnKeyEvent(GLFWwindow* window,
-    int key, int scancode, int action, int mods) {
+void OnKeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods) {
     SPDLOG_INFO("key: {}, scancode: {}, action: {}, mods: {}{}{}",
         key, scancode,
         action == GLFW_PRESS ? "Pressed" :
@@ -18,6 +23,18 @@ void OnKeyEvent(GLFWwindow* window,
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
     }
+}
+
+void OnCursorPos(GLFWwindow* window, double x, double y) {
+    auto context = (Context*)glfwGetWindowUserPointer(window);
+    context->MouseMove(x, y);
+}
+
+void OnMouseButton(GLFWwindow* window, int button, int action, int modifier) {
+    auto context = (Context*)glfwGetWindowUserPointer(window);
+    double x, y;
+    glfwGetCursorPos(window, &x, &y);
+    context->MouseButton(button, action, x, y);
 }
 
 int main(int ac, char **av) {
@@ -73,18 +90,18 @@ int main(int ac, char **av) {
         glfwTerminate();
         return -1;
     }
+    glfwSetWindowUserPointer(window, context.get());
 
-    // window 크기와 배경 색상(맥에서는 문제 있음!!)
-    // glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-
-    // glfwSetFramebufferSizeCallback(window, OnFramebufferSizeChange);
+    glfwSetFramebufferSizeCallback(window, OnFramebufferSizeChange);
     glfwSetKeyCallback(window, OnKeyEvent);
+    glfwSetCursorPosCallback(window, OnCursorPos);
+    glfwSetMouseButtonCallback(window, OnMouseButton);
 
     // 메인 while 문
     while (!glfwWindowShouldClose(window)) {
-
         glfwPollEvents();
-        context->Render(); // state using function
+        context->ProcessInput(window);
+        context->Render();
         glfwSwapBuffers(window);
     }
 
