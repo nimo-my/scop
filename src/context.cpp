@@ -1,6 +1,7 @@
 #include "context.h"
 #include "GLFW/glfw3.h"
 #include "image.h"
+#include <imgui.h>
 
 ContextUPtr Context:: Create() 
 {
@@ -14,7 +15,6 @@ void Context::ProcessInput(GLFWwindow* window) {
 
     if (!m_cameraControl)
         return;
-
 
     const float cameraSpeed = 0.05f;
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
@@ -154,6 +154,11 @@ bool Context::Init()
 
 void Context::Render()
 {
+    if (ImGui::Begin("my first ImGui window")) {
+        ImGui::Text("This is first text...");
+    }
+    ImGui::End();
+
     std::vector<glm::vec3> cubePositions = {
         glm::vec3( 0.0f, 0.0f, 0.0f),
         glm::vec3( 2.0f, 5.0f, -15.0f),

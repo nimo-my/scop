@@ -23,4 +23,4 @@ private:
     uint32_t m_program { 0 };
 };
 
-#endif // __PROGRAM_H_
+#endif // __PROGRAM_H_ﬁ

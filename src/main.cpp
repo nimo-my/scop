@@ -3,6 +3,9 @@
 #include <spdlog/spdlog.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
+
 
 void OnFramebufferSizeChange(GLFWwindow* window, int width, int height) {
   SPDLOG_INFO("framebuffer size changed: ({} x {})", width, height);
@@ -31,6 +34,7 @@ void OnCursorPos(GLFWwindow* window, double x, double y) {
 }
 
 void OnMouseButton(GLFWwindow* window, int button, int action, int modifier) {
+    ImGui_ImplGlfw_MouseButtonCallback(window, button, action, modifier);
     auto context = (Context*)glfwGetWindowUserPointer(window);
     double x, y;
     glfwGetCursorPos(window, &x, &y);
@@ -83,6 +87,12 @@ int main(int ac, char **av) {
     auto program = Program::Create({fragShader, vertShader});
     std::cout << "program id : " << program->Get() << std::endl;
 
+    auto imguiContext = ImGui::CreateContext();
+    ImGui::SetCurrentContext(imguiContext);
+    ImGui_ImplGlfw_InitForOpenGL(window, false); //callback false
+    ImGui_ImplOpenGL3_Init(); // 3.3 renderer initialize
+    ImGui_ImplOpenGL3_CreateFontsTexture();
+    ImGui_ImplOpenGL3_CreateDeviceObjects(); // shader
 
     auto context = Context::Create();
     if (!context) {
@@ -99,14 +109,28 @@ int main(int ac, char **av) {
 
     // 메인 while 문
     while (!glfwWindowShouldClose(window)) {
+        
         glfwPollEvents();
+	    ImGui_ImplGlfw_NewFrame(); // imgui draws things every frame.. everytime they loop, they need to know that typicall frame is the new frame.
+        ImGui::NewFrame();
+
         context->ProcessInput(window);
         context->Render();
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
     }
 
     context.reset(); // 방법1. context 에 담긴 내용들 모두 리셋 
     // context = nullptr; // 방법2. 소유권이 없어지면서 메모리 해제를 해줌. 
+
+    ImGui_ImplOpenGL3_DestroyFontsTexture();
+    ImGui_ImplOpenGL3_DestroyDeviceObjects();
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext(imguiContext);
+
     glfwTerminate();
     return 0;
 }
