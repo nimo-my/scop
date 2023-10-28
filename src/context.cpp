@@ -2,6 +2,7 @@
 #include "GLFW/glfw3.h"
 #include "image.h"
 #include <imgui.h>
+#include <iostream>
 
 ContextUPtr Context:: Create() 
 {
@@ -9,6 +10,40 @@ ContextUPtr Context:: Create()
     if (!context->Init())
         return nullptr;
     return std::move(context);
+}
+
+
+void Context::MouseMove(double x, double y) {
+
+    if (!m_cameraControl)
+        return;
+    auto pos = glm::vec2((float)x, (float)y);
+    auto deltaPos = pos - m_prevMousePos;
+
+    const float cameraRotSpeed = 0.8f;
+    m_cameraYaw -= deltaPos.x * cameraRotSpeed;
+    m_cameraPitch -= deltaPos.y * cameraRotSpeed;
+
+    if (m_cameraYaw < 0.0f)   m_cameraYaw += 360.0f;
+    if (m_cameraYaw > 360.0f) m_cameraYaw -= 360.0f;
+
+    if (m_cameraPitch > 89.0f)  m_cameraPitch = 89.0f;
+    if (m_cameraPitch < -89.0f) m_cameraPitch = -89.0f;
+
+    m_prevMousePos = pos;  
+}
+
+void Context::MouseButton(int button, int action, double x, double y) {
+    if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+        if (action == GLFW_PRESS) {
+            // 마우스 조작 시작 시점에 현재 마우스 커서 위치 저장
+            m_prevMousePos = glm::vec2((float)x, (float)y);
+            m_cameraControl = true;
+        }
+        else if (action == GLFW_RELEASE) {
+            m_cameraControl = false;
+        }
+    }
 }
 
 void Context::ProcessInput(GLFWwindow* window) {
@@ -43,36 +78,36 @@ void Context::Reshape(int width, int height) {
 
 bool Context::Init() 
 {
-	float vertices[] = {
-    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-    0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
-    0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f, 0.0f, 1.0f,
+    float vertices[] = { // pos.xyz, normal.xyz, texcoord.uv
+    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f,
+    0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f,
+    0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f,
 
-    -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
-    0.5f, -0.5f,  0.5f, 1.0f, 0.0f,
-    0.5f,  0.5f,  0.5f, 1.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f, 0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f,
+    0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f, 1.0f, 0.0f,
+    0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f, 0.0f, 1.0f,
 
-    -0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f, 1.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f,
 
-    0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
-    0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
-    0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-    0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
+    0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f,
+    0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f, 1.0f, 1.0f,
+    0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f,
+    0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f,
 
-    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-    0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
-    0.5f, -0.5f,  0.5f, 1.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f,
+    0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f, 1.0f, 1.0f,
+    0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f,
 
-    -0.5f,  0.5f, -0.5f, 0.0f, 1.0f,
-    0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
-    0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f, 0.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f,
+    0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f,
+    0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f,
     };
 
     uint32_t indices[] = {
@@ -89,32 +124,26 @@ bool Context::Init()
     m_vertexLayout = VertexLayout::Create();
 
     // [2] VBO binding :: 버텍스 버퍼 생성(generate)
-    m_vertexBuffer = Buffer::CreateWithData(GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertices, sizeof(float) * 120);
-
-
 
     // [3] Vertex attribute setting
     // vertices의 위치를 각각 어떻게 구성할것인지! layout = x의 x에 들어오는 값!
     // 정점 attribute 중 n번째를 사용하도록 (0번 attribute를 사용할거다!)
 
-    m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
-    m_vertexLayout->SetAttrib(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, sizeof(float) * 3);
+   m_vertexBuffer = Buffer::CreateWithData(GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertices, sizeof(float) * 8 * 6 * 4);
+
+    m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, 0); // 인자 : floating point , ... , offset
+    m_vertexLayout->SetAttrib(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, sizeof(float) * 3);
+    m_vertexLayout->SetAttrib(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, sizeof(float) * 6);
 
     m_indexBuffer = Buffer::CreateWithData(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices, sizeof(uint32_t) * 36);
 
-    ShaderPtr vertShader = Shader::CreateFromFile("./shader/lighting.vs", GL_VERTEX_SHADER);
-    ShaderPtr fragShader = Shader::CreateFromFile("./shader/lighting.fs", GL_FRAGMENT_SHADER);
-
-    if (!vertShader || !fragShader)
+    m_simpleProgram = Program::Create("./shader/simple.vs", "./shader/simple.fs");
+    if (!m_simpleProgram)
         return false;
-    SPDLOG_INFO("vertex shader id: {}", vertShader->Get());
-    SPDLOG_INFO("fragment shader id: {}", fragShader->Get());
 
-    m_program = Program::Create({fragShader, vertShader});
+    m_program = Program::Create("./shader/lighting.vs", "./shader/lighting.fs");
     if (!m_program)
         return false;
-    SPDLOG_INFO("program id: {}", m_program->Get());
-
     // auto loc = glGetUniformLocation(m_program->Get(), "color"); // simple.vs가서 color를 찾아서 loc에 정수를 할당해줌.
     // m_program->Use();
     // glUniform4f(loc, 0.0f, 1.0f, 0.0f, 1.0f); // 해당 위치에 1101을 넣어줘라! (rgba 값으로 들어가니까 노란색으로 나올 것! )
@@ -134,15 +163,18 @@ bool Context::Init()
         return false;
     SPDLOG_INFO("image: {}x{}, {} channels", image->GetWidth(), image->GetHeight(), image->GetChannelCount());
 
-    m_texture = Texture::CreateFromImage(image.get());
+   m_texture = Texture::CreateFromImage(image.get());
 
-    auto image2 = Image::Load("./image/cat.png");
-    m_texture2 = Texture::CreateFromImage(image2.get());
+   auto image2 = Image::Load("./image/cat.png");
+   m_texture2 = Texture::CreateFromImage(image2.get());
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_texture->Get());
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, m_texture2->Get());
+   m_material.diffuse = Texture::CreateFromImage(Image::Load("./image/container2.png").get());
+   m_material.specular = Texture::CreateFromImage(Image::Load("./image/container2_specular.png").get());
+
+   glActiveTexture(GL_TEXTURE0);
+   glBindTexture(GL_TEXTURE_2D, m_texture->Get());
+   glActiveTexture(GL_TEXTURE1);
+   glBindTexture(GL_TEXTURE_2D, m_texture2->Get());
 
     m_program->Use();
     m_program->SetUniform("tex", 0);
@@ -156,6 +188,20 @@ void Context::Render()
 {
 
     if (ImGui::Begin("ui window")) {
+
+        if (ImGui::CollapsingHeader("light", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::DragFloat3("l.position", glm::value_ptr(m_light.position), 0.01f);
+            ImGui::ColorEdit3("l.ambient", glm::value_ptr(m_light.ambient));
+            ImGui::ColorEdit3("l.diffuse", glm::value_ptr(m_light.diffuse));
+            ImGui::ColorEdit3("l.specular", glm::value_ptr(m_light.specular));
+        }
+        
+        if (ImGui::CollapsingHeader("material", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::DragFloat("m.shininess", &m_material.shininess, 1.0f, 1.0f, 256.0f);
+        }
+        
+        ImGui::Checkbox("animation", &m_animation);
+
         if (ImGui::ColorEdit4("clear color", glm::value_ptr(m_clearColor))) {
             glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
         }
@@ -177,11 +223,6 @@ void Context::Render()
     }
     ImGui::End();
 
-    m_program->Use();
-    m_program->SetUniform("lightColor", m_lightColor);
-    m_program->SetUniform("objectColor", m_objectColor);
-    m_program->SetUniform("ambientStrength", m_ambientStrength);
-
     std::vector<glm::vec3> cubePositions = {
         glm::vec3( 0.0f, 0.0f, 0.0f),
         glm::vec3( 2.0f, 5.0f, -15.0f),
@@ -197,62 +238,49 @@ void Context::Render()
 
     // 버퍼 초기화
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST);
 
-    	m_cameraFront = glm::rotate(glm::mat4(1.0f),glm::radians(m_cameraYaw), glm::vec3(0.0f, 1.0f, 0.0f)) *
-        glm::rotate(glm::mat4(1.0f), glm::radians(m_cameraPitch), glm::vec3(1.0f, 0.0f, 0.0f)) *
-        glm::vec4(0.0f, 0.0f, -1.0f, 0.0f); // 방향벡터
+    m_cameraFront = glm::rotate(glm::mat4(1.0f),glm::radians(m_cameraYaw), glm::vec3(0.0f, 1.0f, 0.0f)) *
+    glm::rotate(glm::mat4(1.0f), glm::radians(m_cameraPitch), glm::vec3(1.0f, 0.0f, 0.0f)) *
+    glm::vec4(0.0f, 0.0f, -1.0f, 0.0f); // 방향벡터
 
     /* 카메라 파라미터! */ 
-    auto projection = glm::perspective(glm::radians(45.0f),
-        (float)m_width / (float)m_height, 0.01f, 30.0f);
+    auto projection = glm::perspective(glm::radians(45.0f),(float)m_width / (float)m_height, 0.01f, 30.0f);
 
-    auto view = glm::lookAt(
-        m_cameraPos,
-        m_cameraPos + m_cameraFront,
-        m_cameraUp);
+    auto view = glm::lookAt(m_cameraPos, m_cameraPos + m_cameraFront, m_cameraUp);
+
+    auto lightModelTransform = glm::translate(glm::mat4(1.0), m_light.position) * glm::scale(glm::mat4(1.0), glm::vec3(0.1f));
+    m_program->Use();
+    m_simpleProgram->Use();
+    m_simpleProgram->SetUniform("color", glm::vec4(m_light.ambient + m_light.diffuse, 1.0f));
+    m_simpleProgram->SetUniform("transform", projection * view * lightModelTransform);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+
+    m_program->Use();
+    m_program->SetUniform("viewPos", m_cameraPos);
+    m_program->SetUniform("light.position", m_light.position);
+    m_program->SetUniform("light.ambient", m_light.ambient);
+    m_program->SetUniform("light.diffuse", m_light.diffuse);
+    m_program->SetUniform("light.specular", m_light.specular);
+    m_program->SetUniform("material.diffuse", 0);
+    m_program->SetUniform("material.specular", 1);
+    m_program->SetUniform("material.shininess", m_material.shininess);
+
+    glActiveTexture(GL_TEXTURE0);
+    m_material.diffuse->Bind();
+
+    glActiveTexture(GL_TEXTURE1);
+    m_material.specular->Bind();
 
     for (size_t i = 0; i < cubePositions.size(); i++){
         auto& pos = cubePositions[i];
         auto model = glm::translate(glm::mat4(1.0f), pos);
-        model = glm::rotate(model,
-            glm::radians((float)glfwGetTime() * 120.0f + 20.0f * (float)i),
-            glm::vec3(1.0f, 0.5f, 0.0f));
+        auto angle = glm::radians((m_animation ? (float)glfwGetTime() : 0.0f) * 120.0f + 20.0f * (float)i);
+
+        model = glm::rotate(model, m_animation ? angle : 0.0f, glm::vec3(1.0f, 0.5f, 0.0f));
         auto transform = projection * view * model;
+
         m_program->SetUniform("transform", transform);
+        m_program->SetUniform("modelTransform", model);
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-    }
-}
-
-void Context::MouseMove(double x, double y) {
-
-    if (!m_cameraControl)
-        return;
-    auto pos = glm::vec2((float)x, (float)y);
-    auto deltaPos = pos - m_prevMousePos;
-
-    const float cameraRotSpeed = 0.8f;
-    m_cameraYaw -= deltaPos.x * cameraRotSpeed;
-    m_cameraPitch -= deltaPos.y * cameraRotSpeed;
-
-    if (m_cameraYaw < 0.0f)   m_cameraYaw += 360.0f;
-    if (m_cameraYaw > 360.0f) m_cameraYaw -= 360.0f;
-
-    if (m_cameraPitch > 89.0f)  m_cameraPitch = 89.0f;
-    if (m_cameraPitch < -89.0f) m_cameraPitch = -89.0f;
-
-    m_prevMousePos = pos;  
-}
-
-void Context::MouseButton(int button, int action, double x, double y) {
-    if (button == GLFW_MOUSE_BUTTON_RIGHT) {
-        if (action == GLFW_PRESS) {
-            // 마우스 조작 시작 시점에 현재 마우스 커서 위치 저장
-            m_prevMousePos = glm::vec2((float)x, (float)y);
-            m_cameraControl = true;
-        }
-        else if (action == GLFW_RELEASE) {
-            m_cameraControl = false;
-        }
     }
 }
