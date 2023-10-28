@@ -181,7 +181,9 @@ void Context::Render()
 
         if (ImGui::CollapsingHeader("light", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::DragFloat3("l.position", glm::value_ptr(m_light.position), 0.01f);
-             ImGui::DragFloat3("l.distance", &m_light.distance, 0.5f, 0.0f, 3000.0f);
+            ImGui::DragFloat("l.direction", glm::value_ptr(m_light.direction), 0.01f);
+            ImGui::DragFloat("l.cutoff", &m_light.cutoff, 0.5f, 0.0f, 90.0f);
+            ImGui::DragFloat3("l.distance", &m_light.distance, 0.5f, 0.0f, 3000.0f);
             ImGui::ColorEdit3("l.ambient", glm::value_ptr(m_light.ambient));
             ImGui::ColorEdit3("l.diffuse", glm::value_ptr(m_light.diffuse));
             ImGui::ColorEdit3("l.specular", glm::value_ptr(m_light.specular));
@@ -206,11 +208,7 @@ void Context::Render()
             m_cameraPitch = 0.0f;
             m_cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
         }
-        if (ImGui::CollapsingHeader("light")) {
-            ImGui::ColorEdit3("light color", glm::value_ptr(m_lightColor));
-            ImGui::ColorEdit3("object color", glm::value_ptr(m_objectColor));
-            ImGui::SliderFloat("ambient strength", &m_ambientStrength, 0.0f, 1.0f);
-        }
+
     }
     ImGui::End();
 
@@ -251,6 +249,8 @@ void Context::Render()
     m_program->SetUniform("viewPos", m_cameraPos);
     m_program->SetUniform("light.position", m_light.position);
     m_program->SetUniform("light.attenuation", GetAttenuationCoeff(m_light.distance));
+    m_program->SetUniform("light.direction", m_light.direction);
+    m_program->SetUniform("light.cutoff", cosf(glm::radians(m_light.cutoff)));
     m_program->SetUniform("light.ambient", m_light.ambient);
     m_program->SetUniform("light.diffuse", m_light.diffuse);
     m_program->SetUniform("light.specular", m_light.specular);

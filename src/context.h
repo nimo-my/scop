@@ -64,6 +64,8 @@ private:
     // light parameter
     struct Light {
         glm::vec3 position { glm::vec3(2.0f, 2.0f, 2.0f) };
+        glm::vec3 direction { glm::vec3(-1.0f, -1.0f, -1.0f) };
+        float cutoff { 20.0f }; // 60도로 되어있는 각도 중 20도
         float distance { 32.0f }; // 기본 거리
         glm::vec3 ambient { glm::vec3(0.1f, 0.1f, 0.1f) };
         glm::vec3 diffuse { glm::vec3(0.5f, 0.5f, 0.5f) };
