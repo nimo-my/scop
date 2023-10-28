@@ -144,18 +144,8 @@ bool Context::Init()
     m_program = Program::Create("./shader/lighting.vs", "./shader/lighting.fs");
     if (!m_program)
         return false;
-    // auto loc = glGetUniformLocation(m_program->Get(), "color"); // simple.vs가서 color를 찾아서 loc에 정수를 할당해줌.
-    // m_program->Use();
-    // glUniform4f(loc, 0.0f, 1.0f, 0.0f, 1.0f); // 해당 위치에 1101을 넣어줘라! (rgba 값으로 들어가니까 노란색으로 나올 것! )
-
 
     glClearColor(0.1f, 0.2f, 0.3f, 0.0f);
-
-    // 정점 하나만 만들 때 사용했음,,! // vertex array 를 만들고 바인딩
-    // uint32_t vao = 0;
-    // glGenVertexArrays(1, &vao);
-    // glBindVertexArray(vao);
-
 
     // 로딩하는 코드
     auto image = Image::Load("./image/container.jpeg");
@@ -191,6 +181,7 @@ void Context::Render()
 
         if (ImGui::CollapsingHeader("light", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::DragFloat3("l.position", glm::value_ptr(m_light.position), 0.01f);
+             ImGui::DragFloat3("l.distance", &m_light.distance, 0.5f, 0.0f, 3000.0f);
             ImGui::ColorEdit3("l.ambient", glm::value_ptr(m_light.ambient));
             ImGui::ColorEdit3("l.diffuse", glm::value_ptr(m_light.diffuse));
             ImGui::ColorEdit3("l.specular", glm::value_ptr(m_light.specular));
@@ -259,6 +250,7 @@ void Context::Render()
     m_program->Use();
     m_program->SetUniform("viewPos", m_cameraPos);
     m_program->SetUniform("light.position", m_light.position);
+    m_program->SetUniform("light.attenuation", GetAttenuationCoeff(m_light.distance));
     m_program->SetUniform("light.ambient", m_light.ambient);
     m_program->SetUniform("light.diffuse", m_light.diffuse);
     m_program->SetUniform("light.specular", m_light.specular);
