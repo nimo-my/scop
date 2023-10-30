@@ -9,7 +9,7 @@ uniform vec3 viewPos;
 struct Light {
     vec3 position;
     vec3 direction;
-    float cutoff;
+    vec2 cutoff;
     vec3 attenuation;
     vec3 ambient;
     vec3 diffuse;
@@ -36,8 +36,9 @@ void main() {
     
     vec3 result = ambient;
     float theta = dot(lightDir, normalize(-light.direction));
-
-    if (theta > light.cutoff) {
+    float intensity = clamp((theta - light.cutoff[1]) / (light.cutoff[0] - light.cutoff[1]), 0.0, 1.0);
+    
+    if (intensity > 0.0) {
         vec3 pixelNorm = normalize(normal);
         float diff = max(dot(pixelNorm, lightDir), 0.0);
         vec3 diffuse = diff * texColor * light.diffuse;
@@ -48,7 +49,7 @@ void main() {
         float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
         vec3 specular = spec * specColor * light.specular;
 
-        result += diffuse + specular;
+        result += (diffuse + specular) * intensity;
     }
 
     result *= attenuation;
