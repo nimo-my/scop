@@ -80,6 +80,10 @@ bool Context::Init()
 {
    m_box = Mesh::CreateBox();
 
+    m_model = Model::Load("./model/backpack.obj");
+    if (!m_model)
+        return false;
+
     m_simpleProgram = Program::Create("./shader/simple.vs", "./shader/simple.fs");
     if (!m_simpleProgram)
         return false;
@@ -101,13 +105,16 @@ bool Context::Init()
    auto image2 = Image::Load("./image/cat.png");
    m_texture2 = Texture::CreateFromImage(image2.get());
 
-   m_material.diffuse = Texture::CreateFromImage(Image::Load("./image/container2.png").get());
-   m_material.specular = Texture::CreateFromImage(Image::Load("./image/container2_specular.png").get());
+//    m_material.diffuse = Texture::CreateFromImage(Image::Load("./image/container2.png").get());
+//    m_material.specular = Texture::CreateFromImage(Image::Load("./image/container2_specular.png").get());
 
-   glActiveTexture(GL_TEXTURE0);
-   glBindTexture(GL_TEXTURE_2D, m_texture->Get());
-   glActiveTexture(GL_TEXTURE1);
-   glBindTexture(GL_TEXTURE_2D, m_texture2->Get());
+    m_material.diffuse = Texture::CreateFromImage(Image::CreateSingleColorImage(4, 4, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)).get());
+    m_material.specular = Texture::CreateFromImage(Image::CreateSingleColorImage(4, 4, glm::vec4(0.5f, 0.5f, 0.5f, 1.0f)).get());
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_texture->Get());
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, m_texture2->Get());
 
     m_program->Use();
     m_program->SetUniform("tex", 0);
@@ -155,19 +162,6 @@ void Context::Render()
     }
     ImGui::End();
 
-    std::vector<glm::vec3> cubePositions = {
-        glm::vec3( 0.0f, 0.0f, 0.0f),
-        glm::vec3( 2.0f, 5.0f, -15.0f),
-        glm::vec3(-1.5f, -2.2f, -2.5f),
-        glm::vec3(-3.8f, -2.0f, -12.3f),
-        glm::vec3( 2.4f, -0.4f, -3.5f),
-        glm::vec3(-1.7f, 3.0f, -7.5f),
-        glm::vec3( 1.3f, -2.0f, -2.5f),
-        glm::vec3( 1.5f, 2.0f, -2.5f),
-        glm::vec3( 1.5f, 0.2f, -1.5f),
-        glm::vec3(-1.3f, 1.0f, -1.5f),
-    };
-
     // 버퍼 초기화
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
@@ -194,32 +188,24 @@ void Context::Render()
     m_program->Use();
     m_program->SetUniform("viewPos", m_cameraPos);
     m_program->SetUniform("light.position", m_light.position);
-    m_program->SetUniform("light.attenuation", GetAttenuationCoeff(m_light.distance));
     m_program->SetUniform("light.direction", m_light.direction);
     m_program->SetUniform("light.cutoff", glm::vec2(cosf(glm::radians(m_light.cutoff[0])), cosf(glm::radians(m_light.cutoff[0] + m_light.cutoff[1]))));
+    m_program->SetUniform("light.attenuation", GetAttenuationCoeff(m_light.distance));
     m_program->SetUniform("light.ambient", m_light.ambient);
     m_program->SetUniform("light.diffuse", m_light.diffuse);
     m_program->SetUniform("light.specular", m_light.specular);
+
     m_program->SetUniform("material.diffuse", 0);
     m_program->SetUniform("material.specular", 1);
     m_program->SetUniform("material.shininess", m_material.shininess);
-
     glActiveTexture(GL_TEXTURE0);
     m_material.diffuse->Bind();
-
     glActiveTexture(GL_TEXTURE1);
     m_material.specular->Bind();
 
-    for (size_t i = 0; i < cubePositions.size(); i++){
-        auto& pos = cubePositions[i];
-        auto model = glm::translate(glm::mat4(1.0f), pos);
-        auto angle = glm::radians((m_animation ? (float)glfwGetTime() : 0.0f) * 120.0f + 20.0f * (float)i);
-
-        model = glm::rotate(model, m_animation ? angle : 0.0f, glm::vec3(1.0f, 0.5f, 0.0f));
-        auto transform = projection * view * model;
-
-        m_program->SetUniform("transform", transform);
-        m_program->SetUniform("modelTransform", model);
-        m_box->Draw();
-    }
+    auto modelTransform = glm::mat4(1.0f);
+    auto transform = projection * view * modelTransform;
+    m_program->SetUniform("transform", transform);
+    m_program->SetUniform("modelTransform", modelTransform);
+    m_model->Draw();
 }

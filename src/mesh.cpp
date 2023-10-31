@@ -70,3 +70,4 @@ MeshUPtr Mesh::CreateBox() {
 
 	return Create(vertices, indices, GL_TRIANGLES);
 }
+
