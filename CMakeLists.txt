@@ -33,11 +33,6 @@ add_executable(${PROJECT_NAME}
     src/vertex_layout.cpp src/vertex_layout.h
     src/image.cpp src/image.h
     src/texture.cpp src/texture.h
-
-    src/glm/Matrix4.cpp src/glm/Matrix4.h
-    src/glm/Vector2.cpp src/glm/Vector2.h
-    src/glm/Vector3.cpp src/glm/Vector3.h
-    src/glm/Vector4.cpp src/glm/Vector4.h
 )
 
 # ExternalProject 관련 명령어 셋 추가
