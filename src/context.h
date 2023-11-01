@@ -21,7 +21,7 @@ public:
     void Render();
 
 private:
-    // Context() {}
+    Context() {}
     bool Init();
     ProgramUPtr m_program;
     ProgramUPtr m_simpleProgram;
@@ -62,7 +62,8 @@ private:
     glm::vec4 m_clearColor { glm::vec4(0.1f, 0.2f, 0.3f, 0.0f) };
     
     // light parameter
-    struct Light {
+    struct Light 
+    {
         glm::vec3 position { glm::vec3(2.0f, 2.0f, 2.0f) };
         glm::vec3 direction { glm::vec3(-1.0f, -1.0f, -1.0f) };
         float cutoff { 20.0f }; // 60도로 되어있는 각도 중 20도
@@ -74,7 +75,8 @@ private:
     Light m_light;
 
     // material parameter
-    struct Material {
+    struct Material 
+    {
         TextureUPtr diffuse;
         TextureUPtr specular;
         float shininess { 32.0f };

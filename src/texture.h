@@ -4,8 +4,9 @@
 #include "image.h"
 
 CLASS_PTR(Texture)
-class Texture {
-public:
+class Texture 
+{
+    public:
     static TextureUPtr CreateFromImage(const Image* image);
     ~Texture();
 

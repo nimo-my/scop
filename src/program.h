@@ -5,11 +5,11 @@
 #include "shader.h"
 
 CLASS_PTR(Program)
-class Program {
+class Program 
+{
 public:
     static ProgramUPtr Create(const std::vector<ShaderPtr>& shaders);
-    static ProgramUPtr Create(const std::string& vertShaderFilename, 
-        const std::string& fragShaderFilename);
+    static ProgramUPtr Create(const std::string& vertShaderFilename, const std::string& fragShaderFilename);
     
     ~Program();
     uint32_t Get() const { return m_program; }
@@ -23,8 +23,7 @@ public:
     
 private:
     Program() {}
-    bool Link(
-        const std::vector<ShaderPtr>& shaders);
+    bool Link(const std::vector<ShaderPtr>& shaders);
     uint32_t m_program { 0 };
 };
 

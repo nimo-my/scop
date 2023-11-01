@@ -4,7 +4,8 @@
 #include "common.h"
 
 CLASS_PTR(Shader);
-class Shader{
+class Shader
+{
 public:
     static ShaderUPtr CreateFromFile(const std::string& filename, GLenum shaderType);
     ~Shader();

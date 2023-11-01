@@ -13,8 +13,8 @@ ContextUPtr Context:: Create()
 }
 
 
-void Context::MouseMove(double x, double y) {
-
+void Context::MouseMove(double x, double y) 
+{
     if (!m_cameraControl)
         return;
     auto pos = glm::vec2((float)x, (float)y);
@@ -30,24 +30,28 @@ void Context::MouseMove(double x, double y) {
     if (m_cameraPitch > 89.0f)  m_cameraPitch = 89.0f;
     if (m_cameraPitch < -89.0f) m_cameraPitch = -89.0f;
 
-    m_prevMousePos = pos;  
+    m_prevMousePos = pos;
 }
 
-void Context::MouseButton(int button, int action, double x, double y) {
-    if (button == GLFW_MOUSE_BUTTON_RIGHT) {
-        if (action == GLFW_PRESS) {
+void Context::MouseButton(int button, int action, double x, double y) 
+{
+    if (button == GLFW_MOUSE_BUTTON_RIGHT) 
+    {
+        if (action == GLFW_PRESS) 
+        {
             // 마우스 조작 시작 시점에 현재 마우스 커서 위치 저장
             m_prevMousePos = glm::vec2((float)x, (float)y);
             m_cameraControl = true;
         }
-        else if (action == GLFW_RELEASE) {
+        else if (action == GLFW_RELEASE) 
+        {
             m_cameraControl = false;
         }
     }
 }
 
-void Context::ProcessInput(GLFWwindow* window) {
-
+void Context::ProcessInput(GLFWwindow* window) 
+{
     if (!m_cameraControl)
         return;
 
@@ -70,7 +74,8 @@ void Context::ProcessInput(GLFWwindow* window) {
         m_cameraPos -= cameraSpeed * cameraUp;
 }
 
-void Context::Reshape(int width, int height) {
+void Context::Reshape(int width, int height) 
+{
     m_width = width;
     m_height = height;
     glViewport(0, 0, m_width, m_height);
@@ -174,10 +179,10 @@ bool Context::Init()
 
 void Context::Render()
 {
-
-    if (ImGui::Begin("ui window")) {
-
-        if (ImGui::CollapsingHeader("light", ImGuiTreeNodeFlags_DefaultOpen)) {
+    if (ImGui::Begin("ui window")) 
+    {
+        if (ImGui::CollapsingHeader("light", ImGuiTreeNodeFlags_DefaultOpen)) 
+        {
             ImGui::DragFloat3("l.position", glm::value_ptr(m_light.position), 0.01f);
             ImGui::DragFloat("l.direction", glm::value_ptr(m_light.direction), 0.01f);
             ImGui::DragFloat("l.cutoff", &m_light.cutoff, 0.5f, 0.0f, 90.0f);
@@ -187,13 +192,15 @@ void Context::Render()
             ImGui::ColorEdit3("l.specular", glm::value_ptr(m_light.specular));
         }
         
-        if (ImGui::CollapsingHeader("material", ImGuiTreeNodeFlags_DefaultOpen)) {
+        if (ImGui::CollapsingHeader("material", ImGuiTreeNodeFlags_DefaultOpen)) 
+        {
             ImGui::DragFloat("m.shininess", &m_material.shininess, 1.0f, 1.0f, 256.0f);
         }
         
         ImGui::Checkbox("animation", &m_animation);
 
-        if (ImGui::ColorEdit4("clear color", glm::value_ptr(m_clearColor))) {
+        if (ImGui::ColorEdit4("clear color", glm::value_ptr(m_clearColor))) 
+        {
             glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
         }
         ImGui::Separator();
@@ -201,16 +208,17 @@ void Context::Render()
         ImGui::DragFloat("camera yaw", &m_cameraYaw, 0.5f);
         ImGui::DragFloat("camera pitch", &m_cameraPitch, 0.5f, -89.0f, 89.0f);
         ImGui::Separator();
-        if (ImGui::Button("reset camera")) {
+        if (ImGui::Button("reset camera"))
+        {
             m_cameraYaw = 0.0f;
             m_cameraPitch = 0.0f;
             m_cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
         }
-
     }
     ImGui::End();
 
-    std::vector<glm::vec3> cubePositions = {
+    std::vector<glm::vec3> cubePositions = 
+    {
         glm::vec3( 0.0f, 0.0f, 0.0f),
         glm::vec3( 2.0f, 5.0f, -15.0f),
         glm::vec3(-1.5f, -2.2f, -2.5f),
@@ -228,8 +236,8 @@ void Context::Render()
     glEnable(GL_DEPTH_TEST);
 
     m_cameraFront = glm::rotate(glm::mat4(1.0f),glm::radians(m_cameraYaw), glm::vec3(0.0f, 1.0f, 0.0f)) *
-    glm::rotate(glm::mat4(1.0f), glm::radians(m_cameraPitch), glm::vec3(1.0f, 0.0f, 0.0f)) *
-    glm::vec4(0.0f, 0.0f, -1.0f, 0.0f); // 방향벡터
+                    glm::rotate(glm::mat4(1.0f), glm::radians(m_cameraPitch), glm::vec3(1.0f, 0.0f, 0.0f)) *
+                    glm::vec4(0.0f, 0.0f, -1.0f, 0.0f); // 방향벡터
 
     /* 카메라 파라미터! */ 
     auto projection = glm::perspective(glm::radians(45.0f),(float)m_width / (float)m_height, 0.01f, 50.0f);
@@ -262,7 +270,8 @@ void Context::Render()
     glActiveTexture(GL_TEXTURE1);
     m_material.specular->Bind();
 
-    for (size_t i = 0; i < cubePositions.size(); i++){
+    for (size_t i = 0; i < cubePositions.size(); i++)
+    {
         auto& pos = cubePositions[i];
         auto model = glm::translate(glm::mat4(1.0f), pos);
         auto angle = glm::radians((m_animation ? (float)glfwGetTime() : 0.0f) * 120.0f + 20.0f * (float)i);

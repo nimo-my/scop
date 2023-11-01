@@ -4,7 +4,8 @@
 #include "common.h"
 
 CLASS_PTR(Image)
-class Image {
+class Image 
+{
 public:
     static ImageUPtr Load(const std::string& filepath);
     static ImageUPtr Create(int width, int height, int channelCount = 4);
