@@ -1,7 +1,6 @@
 #include "buffer.h"
 
-BufferUPtr Buffer::CreateWithData(uint32_t bufferType, uint32_t usage, 
-                                    const void* data, size_t dataSize) 
+BufferUPtr Buffer::CreateWithData(uint32_t bufferType, uint32_t usage, const void* data, size_t dataSize) 
 {
     auto buffer = BufferUPtr(new Buffer());
     if (!buffer->Init(bufferType, usage, data, dataSize))
@@ -26,6 +25,7 @@ bool Buffer::Init(uint32_t bufferType, uint32_t usage, const void* data, size_t 
 {
     m_bufferType = bufferType;
     m_usage = usage;
+    // glGenBuffers : generate buffer object names
     glGenBuffers(1, &m_buffer);
     Bind();
     glBufferData(m_bufferType, dataSize, data, usage);

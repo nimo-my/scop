@@ -9,22 +9,22 @@
 #include "texture.h"
 
 CLASS_PTR(Context)
-class Context 
+class Context
 {
 public:
     static ContextUPtr Create();
-    void Render();
-    void ProcessInput(GLFWwindow* window);
-    void Reshape(int width, int height);
     void MouseMove(double x, double y);
     void MouseButton(int button, int action, double x, double y);
+    void ProcessInput(GLFWwindow* window);
+    void Reshape(int width, int height);
+
+    void Render();
 
 private:
-    Context() {}
+    // Context() {}
     bool Init();
     ProgramUPtr m_program;
     ProgramUPtr m_simpleProgram;
-
 
     VertexLayoutUPtr m_vertexLayout;
 	BufferUPtr m_vertexBuffer;

@@ -124,14 +124,12 @@ bool Context::Init()
     m_vertexLayout = VertexLayout::Create();
 
     // [2] VBO binding :: 버텍스 버퍼 생성(generate)
+    m_vertexBuffer = Buffer::CreateWithData(GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertices, sizeof(float) * 8 * 6 * 4);
 
     // [3] Vertex attribute setting
-    // vertices의 위치를 각각 어떻게 구성할것인지! layout = x의 x에 들어오는 값!
-    // 정점 attribute 중 n번째를 사용하도록 (0번 attribute를 사용할거다!)
-
-   m_vertexBuffer = Buffer::CreateWithData(GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertices, sizeof(float) * 8 * 6 * 4);
-
-    m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, 0); // 인자 : floating point , ... , offset
+    // vertices의 위치를 각각 어떻게 구성할것인지!
+    // void VertexLayout::SetAttrib(uint32_t attribIndex, 버텍스 속성의 크기, 데이터 타입, 정규화 여부, 연이은 vertex 속성 세트들 사이의 공백(stride), 버퍼에서 데이터) const
+    m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, 0);
     m_vertexLayout->SetAttrib(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, sizeof(float) * 3);
     m_vertexLayout->SetAttrib(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, sizeof(float) * 6);
 

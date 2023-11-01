@@ -55,6 +55,7 @@ Program::~Program()
     }
 }
 
+// 2. 오브젝트를 그리고 싶을 때 우리가 생성한 shader program을 사용
 void Program::Use() const {
     glUseProgram(m_program);
 }

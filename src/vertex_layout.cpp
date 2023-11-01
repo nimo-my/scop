@@ -15,11 +15,13 @@ VertexLayout::~VertexLayout()
     }
 }
 
+// VAO binding
 void VertexLayout::Bind() const 
 {
     glBindVertexArray(m_vertexArrayObject);
 }
 
+// OpenGL이 vertex 데이터를 어떻게 해석해야하는지 지정
 void VertexLayout::SetAttrib(uint32_t attribIndex, int count, uint32_t type, 
                                 bool normalized, size_t stride, uint64_t offset) const 
 {
