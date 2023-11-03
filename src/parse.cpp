@@ -23,7 +23,7 @@ void Parse::Parser(std::string filename, std::vector<Vertex> vertices, std::vect
         {
             glm::vec3 vertex;
             ss >> vertex.x >> vertex.y >> vertex.z;
-            std::cout << "- vert :: " << to_string(vertex) << std::endl;
+            // std::cout << "- vert :: " << to_string(vertex) << std::endl; //NOTE - for debug
             vertices.push_back({vertex, glm::vec3(0.0f), glm::vec2(0.0f)});
         }
         else if (typePrefix == "f") // vertex face information
@@ -74,7 +74,7 @@ void Parse::Parser(std::string filename, std::vector<Vertex> vertices, std::vect
             {
                 glm::vec3 normal;
                 ss >> normal.x >> normal.y >> normal.z;
-                std::cout << "- norm :: " << to_string(normal) << std::endl;
+                // std::cout << "- norm :: " << to_string(normal) << std::endl; // NOTE - for debug
                 vertices[vertexNormalIdx].normal = normal;
                 vertexNormalIdx++;
             }
@@ -85,7 +85,7 @@ void Parse::Parser(std::string filename, std::vector<Vertex> vertices, std::vect
             {
                 glm::vec2 texCoord;
                 ss >> texCoord.x >> texCoord.y;
-                std::cout << "- norm :: " << to_string(texCoord) << std::endl;
+                // std::cout << "- norm :: " << to_string(texCoord) << std::endl; // NOTE - for debug
                 vertices[vertexTexIdx].texCoord = texCoord;
                 vertexTexIdx++;
             }
@@ -122,8 +122,6 @@ void Parse::printVertexInfo(std::vector<Vertex> vertices)
         {
             std::cout << iter->texCoord[i] << ",";
         }
-        std::cout << " / ";
         std::cout << " )\n";
     }
 }
-
