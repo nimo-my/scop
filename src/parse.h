@@ -2,8 +2,8 @@
 #define __PARSE_H__
 
 #include "common.h"
-#define GLM_ENABLE_EXPERIMENTAL // TODO: to_string 안쓰게 되면 지우기
-#include "glm/ext.hpp"          // TODO: to_string 안쓰게 되면 지우기
+#define GLM_ENABLE_EXPERIMENTAL // FIXME: to_string 안쓰게 되면 지우기
+#include "glm/ext.hpp"          // FIXME: to_string 안쓰게 되면 지우기
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -30,8 +30,8 @@ class Parse
   public:
     // Parse() {};
     void Parser(std::string filename, std::vector<Vertex> vertices, std::vector<Face> faces);
+    void makeVBO(std::vector<Vertex> vertices, std::vector<Face> faces);
     void printVertexInfo(std::vector<Vertex> vertices);
-    void printFaceInfo(std::vector<Face> faces);
 
   private:
     // TODO: 초기화 하는 부분 다듬기

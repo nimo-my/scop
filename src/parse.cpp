@@ -93,7 +93,12 @@ void Parse::Parser(std::string filename, std::vector<Vertex> vertices, std::vect
 
         this->rangeLimit--;
     }
-    printVertexInfo(vertices);
+    printVertexInfo(vertices); // FIXME : for debug
+}
+
+void Parse::makeVBO(std::vector<Vertex> vertices, std::vector<Face> faces)
+{
+    // TODO : need to implement code.
 }
 
 void Parse::printVertexInfo(std::vector<Vertex> vertices)
@@ -121,3 +126,4 @@ void Parse::printVertexInfo(std::vector<Vertex> vertices)
         std::cout << " )\n";
     }
 }
+

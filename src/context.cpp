@@ -94,6 +94,7 @@ bool Context::Init()
     std::vector<Face> faces;
     std::string filename = "./resorces/box.obj";
     Parse->Parser(filename, vertices, faces); // 파싱부분!
+    Parse->makeVBO(vertices, faces);
 
     exit(0);
 
