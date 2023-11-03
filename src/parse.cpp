@@ -1,8 +1,6 @@
 #include "parse.h"
 
 // https://www.cs.cmu.edu/~mbz/personal/graphics/obj.html
-// std::vector<Vertex> vertices;
-// std::vector<Face> faces;
 
 void Parse::Parser(std::string filename, std::vector<Vertex> vertices, std::vector<Face> faces)
 {
