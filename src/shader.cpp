@@ -19,7 +19,7 @@ Shader::~Shader()
 
 bool Shader::LoadFile(const std::string& filename, GLenum shaderType)
 {
-    // file loading (return : optional, 값이 있을수도 있고 없을 수도 있음! )
+    // file loading (return : optional, 값이 있을수도 있고 없을 수도 있음!)
     auto result = LoadTextFile(filename);
     if (!result.has_value())
         return false;

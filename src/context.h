@@ -7,6 +7,7 @@
 #include "buffer.h"
 #include "vertex_layout.h"
 #include "texture.h"
+#include "parse.h"
 
 CLASS_PTR(Context)
 class Context

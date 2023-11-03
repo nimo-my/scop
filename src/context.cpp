@@ -3,15 +3,15 @@
 #include "image.h"
 #include <imgui.h>
 #include <iostream>
+#include "parse.h"
 
-ContextUPtr Context:: Create() 
+ContextUPtr Context::Create() 
 {
     auto context = ContextUPtr(new Context());
     if (!context->Init())
         return nullptr;
     return std::move(context);
 }
-
 
 void Context::MouseMove(double x, double y) 
 {
@@ -83,7 +83,16 @@ void Context::Reshape(int width, int height)
 
 bool Context::Init() 
 {
-    float vertices[] = { // pos.xyz, normal.xyz, texcoord.uv
+    Parse* Parse;
+    std::vector<Vertex> vertices;
+    std::vector<Face> faces;
+    std::string filename = "./resorces/backpack.obj";
+    Parse->Parser(filename, vertices, faces); // 파싱부분!
+
+    exit(0);
+
+
+    float vertice[] = { // vertex_pos.xyz, normal.xyz, texcoord.uv
     -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f,
     0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f,
     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f,
@@ -129,7 +138,7 @@ bool Context::Init()
     m_vertexLayout = VertexLayout::Create();
 
     // [2] VBO binding :: 버텍스 버퍼 생성(generate)
-    m_vertexBuffer = Buffer::CreateWithData(GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertices, sizeof(float) * 8 * 6 * 4);
+    m_vertexBuffer = Buffer::CreateWithData(GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertice, sizeof(float) * 8 * 6 * 4);
 
     // [3] Vertex attribute setting
     // vertices의 위치를 각각 어떻게 구성할것인지!

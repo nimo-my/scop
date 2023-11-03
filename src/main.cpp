@@ -89,8 +89,6 @@ int main(int ac, char **av) {
     // [컨텍스트 초기화 부분] 쉐이더 파일 받아오기! 하나씩 하나씩 받아오고, 아이디 번호도 가져올수 있음!
     ShaderPtr vertShader = Shader::CreateFromFile("./shader/simple.vs", GL_VERTEX_SHADER);
     ShaderPtr fragShader = Shader::CreateFromFile("./shader/simple.fs", GL_FRAGMENT_SHADER);
-    std::cout << "vertex shader id : " << vertShader->Get() << std::endl;
-    std::cout << "fragment shader id : " << fragShader->Get() << std::endl;
 
     // vector 는 {} 로 묶어서 쓸 수 있음.
     // auto program = Program::Create({fragShader, vertShader});
@@ -120,8 +118,8 @@ int main(int ac, char **av) {
     glfwSetScrollCallback(window, OnScroll);
 
     /* [4] Loop until the user closes the window */
-    while (!glfwWindowShouldClose(window)) {
-        
+    while (!glfwWindowShouldClose(window)) 
+    {
         /* Render */
 	    ImGui_ImplGlfw_NewFrame(); // 루프를 돌 때마다 새로운 frame을 로딩해준다
         ImGui::NewFrame();

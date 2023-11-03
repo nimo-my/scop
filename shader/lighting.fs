@@ -1,12 +1,15 @@
 #version 330 core
+
 in vec3 normal;
 in vec2 texCoord;
 in vec3 position;
+
 out vec4 fragColor;
- 
+
 uniform vec3 viewPos;
  
-struct Light {
+struct Light
+{
     vec3 position;
     vec3 direction;
     float cutoff;
@@ -17,14 +20,16 @@ struct Light {
 };
 uniform Light light;
  
-struct Material {
+struct Material
+{
     sampler2D diffuse;
     sampler2D specular;
     float shininess;
 };
 uniform Material material;
  
-void main() {
+void main() 
+{
     vec3 texColor = texture(material.diffuse, texCoord).xyz;
   	vec3 ambient = texColor * light.ambient;
  
@@ -37,7 +42,8 @@ void main() {
     vec3 result = ambient;
     float theta = dot(lightDir, normalize(-light.direction));
 
-    if (theta > light.cutoff) {
+    if (theta > light.cutoff)
+    {
         vec3 pixelNorm = normalize(normal);
         float diff = max(dot(pixelNorm, lightDir), 0.0);
         vec3 diffuse = diff * texColor * light.diffuse;
