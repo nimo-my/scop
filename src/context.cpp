@@ -88,13 +88,19 @@ void Context::Reshape(int width, int height)
 bool Context::Init()
 {
     // ** PARSING **
-    Parse *Parse;
+    Parse *parse = new Parse();
     // NOTE: vertices 와 faces를 parse.cpp 안에서 처리하는게 나을까?
 
-    std::string filename = "./resorces/box.obj";
-    Parse->Parser(filename); // 파싱부분!
-    Parse->makeVBO();
+    std::string objFileName = "./resorces/";
+    objFileName += "backpack"; // NOTE : insert file name
+    parse->setFileName(objFileName);
+    objFileName += ".obj";
 
+    parse->Parser(objFileName); // 파싱부분!
+
+
+    delete parse;
+    
     exit(0);
 
     float vertice[] = {

@@ -2,8 +2,8 @@
 #define __PARSE_H__
 
 #include "common.h"
-#define GLM_ENABLE_EXPERIMENTAL // FIXME: to_string 안쓰게 되면 지우기
-#include "glm/ext.hpp"          // FIXME: to_string 안쓰게 되면 지우기
+// #define GLM_ENABLE_EXPERIMENTAL // FIXME: glm to_string 안쓰게 되면 지우기
+// #include "glm/ext.hpp"          // FIXME: glm to_string 안쓰게 되면 지우기
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -11,35 +11,45 @@
 #include <vector>
 
 
-CLASS_PTR(Parse)
+// CLASS_PTR(Parse)
 class Parse
 {
   public:
-    // Parse() {};
+    Parse();
     void Parser(std::string filename);
     void makeVBO();
+    void parseMtlFile();
+    void setFileName(std::string name);
+
+  // for debug
     void printVertexInfo();
+    std::string getFileName();
 
   private:
-    // TODO: 초기화 하는 부분 다듬기
-    std::string mtlInfo{0}; // .mtl file name
+    std::string mtlInfo;
+    std::string filename;
     
     // parsing
-    std::string typePrefix = "";
-    std::size_t vertexNormalIdx = 0;
-    std::size_t vertexTexIdx = 0;
-    std::size_t rangeLimit = 0;
+    std::string typePrefix;
+    std::size_t vertexNormalIdx;
+    std::size_t vertexTexIdx;
+    std::size_t rangeLimit;
 
     // VERTEX data 
-    std::vector<int> vertexPosition; // 3
-    std::vector<int> normal; // 3
-    std::vector<int> texCoord; // 2
+    std::vector<float> vertexPosition; // 3
+    std::vector<float> vertexNormal; // 3
+    std::vector<float> vertexTexCoord; // 2
 
     // FACE data
-    std::vector<int> vertexIndex;
-    std::vector<int> normalIndex;
-    std::vector<int> texCoordIndex;
+    std::vector<size_t> faceVertexIndex;
+    std::vector<size_t> faceNormalIndex;
+    std::vector<size_t> faceTexCoordIndex;
 
+    // mtl file
+    std::vector<float> attribute;
+    std::vector<float> diffuse;
+    std::vector<float> specular;
+    
 };
 
 #endif // __PARSE_H__
