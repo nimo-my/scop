@@ -90,11 +90,10 @@ bool Context::Init()
     // ** PARSING **
     Parse *Parse;
     // NOTE: vertices 와 faces를 parse.cpp 안에서 처리하는게 나을까?
-    std::vector<Vertex> vertices;
-    std::vector<Face> faces;
+
     std::string filename = "./resorces/box.obj";
-    Parse->Parser(filename, vertices, faces); // 파싱부분!
-    Parse->makeVBO(vertices, faces);
+    Parse->Parser(filename); // 파싱부분!
+    Parse->makeVBO();
 
     exit(0);
 

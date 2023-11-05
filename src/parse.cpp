@@ -2,7 +2,7 @@
 
 // https://www.cs.cmu.edu/~mbz/personal/graphics/obj.html
 
-void Parse::Parser(std::string filename, std::vector<Vertex> vertices, std::vector<Face> faces)
+void Parse::Parser(std::string filename)
 {
     std::ifstream file(filename);
     if (!file.is_open())
@@ -19,16 +19,17 @@ void Parse::Parser(std::string filename, std::vector<Vertex> vertices, std::vect
         std::istringstream ss(line);
         ss >> typePrefix;
 
+        std::cout << "****TYPE : " << typePrefix << "\n";
         if (typePrefix == "v") // vertex positions
         {
             glm::vec3 vertex;
             ss >> vertex.x >> vertex.y >> vertex.z;
-            // std::cout << "- vert :: " << to_string(vertex) << std::endl; //NOTE - for debug
-            vertices.push_back({vertex, glm::vec3(0.0f), glm::vec2(0.0f)});
+            std::cout << "- vert :: " << to_string(vertex) << " // range limit :: "<< rangeLimit<< std::endl; //NOTE - for debug
+            vertexPosition.push_back(vertex);
+            rangeLimit++;
         }
         else if (typePrefix == "f") // vertex face information
         {
-            Face face;
             std::string vertexData;
             while (ss >> vertexData)
             {
@@ -38,26 +39,26 @@ void Parse::Parser(std::string filename, std::vector<Vertex> vertices, std::vect
 
                 vertexIdxInfoStream >> vertexIndex; // 공백을 기준으로 문자열을 parsing하고, 변수 형식에
                                                     // 맞게 변환
-                face.vertexIndex.push_back(vertexIndex - 1);
+                vertexIndex.push_back(vertexIndex - 1);
 
                 if (vertexIdxInfoStream.peek() == '/') // .peek() : 스트림에서 빼오지는 않고 읽기만 한다
                 {
                     vertexIdxInfoStream.ignore();
-                    if (vertexIdxInfoStream.peek() != '/')
+                    if (vertexIdxInfoStream.peek() != '/') // Vertex Normal
                     {
                         vertexIdxInfoStream >> texCoordIndex;
-                        face.texCoordIndex.push_back(texCoordIndex - 1);
+                        texCoordIndex.push_back(texCoordIndex - 1);
                     }
-                    if (vertexIdxInfoStream.peek() == '/')
+                    if (vertexIdxInfoStream.peek() == '/') // Vertex Texture
                     {
                         vertexIdxInfoStream.ignore();
                         vertexIdxInfoStream >> normalIndex;
-                        face.normalIndex.push_back(normalIndex - 1);
+                        normalIndex.push_back(normalIndex - 1);
                     }
                 }
             }
-            faces.push_back(face);
         }
+        typePrefix = ""; // typePrefix 초기화
     }
     std::ifstream file2(filename);
     if (!file2.is_open())
@@ -67,7 +68,7 @@ void Parse::Parser(std::string filename, std::vector<Vertex> vertices, std::vect
     }
     std::cout << "NOTION : open available.\n";
     line = "";
-    std::cout << "NOTION : parse vn & vt.\n";
+    std::cout << "NOTION : parse vn & vt, range limit :: " <<rangeLimit <<"\n";
     while (std::getline(file2, line))
     {
         if (!rangeLimit)
@@ -78,11 +79,10 @@ void Parse::Parser(std::string filename, std::vector<Vertex> vertices, std::vect
         {
             if (typePrefix == "vn") // vertex normals
             {
-                std::cout << "hi\n";
                 glm::vec3 normal;
                 ss >> normal.x >> normal.y >> normal.z;
                 // std::cout << "- norm :: " << to_string(normal) << std::endl; // NOTE - for debug
-                vertices[vertexNormalIdx].normal = normal;
+                this->normal = normal;
                 vertexNormalIdx++;
             }
             else if (typePrefix == "vt") // vertex textures
@@ -90,41 +90,42 @@ void Parse::Parser(std::string filename, std::vector<Vertex> vertices, std::vect
                 glm::vec2 texCoord;
                 ss >> texCoord.x >> texCoord.y;
                 // std::cout << "- text :: " << to_string(texCoord) << std::endl; // NOTE - for debug
-                vertices[vertexTexIdx].texCoord = texCoord;
+                this->texCoord = texCoord;
                 vertexTexIdx++;
             }
         }
         this->rangeLimit--;
+        typePrefix = ""; // typePrefix 초기화
     }
-    printVertexInfo(vertices); // FIXME : for debug
+    // printVertexInfo(vertices); // FIXME : for debug
 }
 
-void Parse::makeVBO(std::vector<Vertex> vertices, std::vector<Face> faces)
+void Parse::makeVBO()
 {
     // TODO : need to implement code.
 }
 
-void Parse::printVertexInfo(std::vector<Vertex> vertices)
-{
-    std::cout << "*** VERTICES **** :: \n";
-    std::vector<Vertex>::iterator iter;
-    for (iter = vertices.begin(); iter != vertices.end(); ++iter)
-    {
-        std::cout << "( ";
-        for (int i = 0; i != 3; i++)
-        {
-            std::cout << iter->vertexPosition[i] << ",";
-        }
-        std::cout << " / ";
-        for (int i = 0; i != 3; i++)
-        {
-            std::cout << iter->normal[i] << ",";
-        }
-        std::cout << " / ";
-        for (int i = 0; i != 2; i++)
-        {
-            std::cout << iter->texCoord[i] << ",";
-        }
-        std::cout << " )\n";
-    }
-}
+// void Parse::printVertexInfo(std::vector<Vertex> vertices)
+// {
+//     std::cout << "*** VERTICES **** :: \n";
+//     std::vector<Vertex>::iterator iter;
+//     for (iter = vertices.begin(); iter != vertices.end(); ++iter)
+//     {
+//         std::cout << "( ";
+//         for (int i = 0; i != 3; i++)
+//         {
+//             std::cout << iter->vertexPosition[i] << ",";
+//         }
+//         std::cout << " / ";
+//         for (int i = 0; i != 3; i++)
+//         {
+//             std::cout << iter->normal[i] << ",";
+//         }
+//         std::cout << " / ";
+//         for (int i = 0; i != 2; i++)
+//         {
+//             std::cout << iter->texCoord[i] << ",";
+//         }
+//         std::cout << " )\n";
+//     }
+// }
