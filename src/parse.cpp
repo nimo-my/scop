@@ -59,38 +59,41 @@ void Parse::Parser(std::string filename, std::vector<Vertex> vertices, std::vect
             faces.push_back(face);
         }
     }
+    std::ifstream file2(filename);
+    if (!file2.is_open())
+    {
+        std::cout << "Error! :: " << filename << " can't be opened.";
+        exit(1);
+    }
+    std::cout << "NOTION : open available.\n";
     line = "";
     std::cout << "NOTION : parse vn & vt.\n";
-    while (std::getline(file, line))
+    while (std::getline(file2, line))
     {
         if (!rangeLimit)
             break;
         std::istringstream ss(line);
         ss >> typePrefix;
-
-        if (typePrefix == "vn") // vertex normals
+        if (!vertices.empty())
         {
-            if (!vertices.empty())
+            if (typePrefix == "vn") // vertex normals
             {
+                std::cout << "hi\n";
                 glm::vec3 normal;
                 ss >> normal.x >> normal.y >> normal.z;
                 // std::cout << "- norm :: " << to_string(normal) << std::endl; // NOTE - for debug
                 vertices[vertexNormalIdx].normal = normal;
                 vertexNormalIdx++;
             }
-        }
-        else if (typePrefix == "vt") // vertex textures
-        {
-            if (!vertices.empty())
+            else if (typePrefix == "vt") // vertex textures
             {
                 glm::vec2 texCoord;
                 ss >> texCoord.x >> texCoord.y;
-                // std::cout << "- norm :: " << to_string(texCoord) << std::endl; // NOTE - for debug
+                // std::cout << "- text :: " << to_string(texCoord) << std::endl; // NOTE - for debug
                 vertices[vertexTexIdx].texCoord = texCoord;
                 vertexTexIdx++;
             }
         }
-
         this->rangeLimit--;
     }
     printVertexInfo(vertices); // FIXME : for debug
