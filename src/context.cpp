@@ -89,10 +89,9 @@ bool Context::Init()
 {
     // ** PARSING **
     Parse *parse = new Parse();
-    // NOTE: vertices 와 faces를 parse.cpp 안에서 처리하는게 나을까?
 
     std::string objFileName = "./resorces/";
-    objFileName += "backpack"; // NOTE : insert file name
+    objFileName += "42"; // NOTE : insert file name
     parse->setFileName(objFileName);
     objFileName += ".obj";
 

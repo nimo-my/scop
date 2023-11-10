@@ -35,37 +35,46 @@ void Parse::Parser(std::string filename)
         else if (typePrefix == "f") // vertex face information
         {
             std::string vertexData;
+            std::vector<size_t> vertexBuffer;
             while (ss >> vertexData)
             {
+                std::cout << vertexData << std::endl;
                 std::istringstream vertexIdxInfoStream(vertexData);
                 float vertexIdx, textureIdx, normalIdx;
-                char separator;
 
-                vertexIdxInfoStream >> vertexIdx; // 공백을 기준으로 문자열을 parsing하고, 변수 형식에
-                                                    // 맞게 변환
-                this->faceVertexIndex.push_back(vertexIdx - 1);
-
-                if (vertexIdxInfoStream.peek() == '/') // .peek() : 스트림에서 빼오지는 않고 읽기만 한다
-                {
-                    vertexIdxInfoStream.ignore();
-                    if (vertexIdxInfoStream.peek() != '/') // Vertex Normal
-                    {
-                        vertexIdxInfoStream >> textureIdx;
-                        faceTexCoordIndex.push_back(textureIdx - 1);
-                    }
-                    if (vertexIdxInfoStream.peek() == '/') // Vertex Texture
-                    {
-                        vertexIdxInfoStream.ignore();
-                        vertexIdxInfoStream >> normalIdx;
-                        faceNormalIndex.push_back(normalIdx - 1);
-                    }
-                }
+                vertexIdxInfoStream >> vertexIdx; // 공백을 기준으로 문자열을 parsing
+                vertexBuffer.push_back(vertexIdx - 1); // while문 돌면서 f 뒤에 오는 인자 하나씩 넣어주기
+                // if (vertexIdxInfoStream.peek() == '/') // .peek() : 스트림에서 빼오지는 않고 읽기만 한다
+                // {
+                //     vertexIdxInfoStream.ignore();
+                //     if (vertexIdxInfoStream.peek() != '/') // Vertex Normal
+                //     {
+                //         vertexIdxInfoStream >> textureIdx;
+                //         vertexBuffer.push_back(textureIdx - 1);
+                //     }
+                //     if (vertexIdxInfoStream.peek() == '/') // Vertex Texture
+                //     {
+                //         vertexIdxInfoStream.ignore();
+                //         vertexIdxInfoStream >> normalIdx;
+                //         vertexBuffer.push_back(normalIdx - 1);
+                //     }
+                // }
             }
+            if (vertexBuffer.size() == 3)
+                this->faces.push_back(vertexBuffer);
+            else if (vertexBuffer.size() == 4)
+            {
+                this->faces.push_back(std::vector<size_t>{vertexBuffer[0], vertexBuffer[1], vertexBuffer[2]});
+                this->faces.push_back(std::vector<size_t>{vertexBuffer[0], vertexBuffer[2], vertexBuffer[3]});
+                
+            }
+            vertexBuffer.clear();
         }
         else if (typePrefix == "mtllib")
             parseMtlFile();
         typePrefix = ""; // typePrefix 초기화
     }
+    file.close();
     
     std::ifstream file2(filename);
     if (!file2.is_open())
@@ -112,6 +121,7 @@ void Parse::Parser(std::string filename)
         typePrefix = ""; // typePrefix 초기화
     }
 
+    file2.close();
     printVertexInfo(); // FIXME : for debug
     makeVBO();
 }
@@ -163,54 +173,51 @@ void Parse::parseMtlFile()
 
 void Parse::makeVBO()
 {
+    normalizing();
+    // texture
     // TODO : need to implement code.
+}
+
+void Parse::normalizing()
+{
+
 }
 
 void Parse::printVertexInfo()
 {
     std::cout << "*** VERTICES **** :: \n";
     std::vector<float>::iterator iter;
-    // std::cout << "1) vertex Position : ";
-    // for (iter = vertexPosition.begin(); iter != vertexPosition.end(); ++iter)
-    // {
-    //    std::cout << *iter << " ";
-    // }
-    // std::cout << "\n2) vertex Normal : ";
-    // std::vector<float>::iterator iter2;
-    // for (iter2 = vertexNormal.begin(); iter2 != vertexNormal.end(); ++iter2)
-    // {
-    //    std::cout << *iter2 << " ";
-    // }
-    // std::cout << "\n3) vertex Texture coord : ";
-    // std::vector<float>::iterator iter3;
-    // for (iter3 = vertexTexCoord.begin(); iter3 != vertexTexCoord.end(); ++iter3)
-    // {
-    //    std::cout << *iter3 << " ";
-    // }
-    // std::cout << "\n4) vertex idx : ";
-    // std::vector<size_t>::iterator iter4;
-    // for (iter4 = faceVertexIndex.begin(); iter4 != faceVertexIndex.end(); ++iter4)
-    // {
-    //    std::cout << *iter4 << " ";
-    // }
-    // std::cout << "\n5) normal idx : ";
-    // std::vector<size_t>::iterator iter5;
-    // for (iter5 = faceNormalIndex.begin(); iter5 != faceNormalIndex.end(); ++iter5)
-    // {
-    //    std::cout << *iter5 << " ";
-    // }
-    // std::cout << "\n6) textcoord idx : ";
-    // std::vector<size_t>::iterator iter6;
-    // for (iter6 = faceTexCoordIndex.begin(); iter6 != faceTexCoordIndex.end(); ++iter6)
-    // {
-    //    std::cout << *iter6 << " ";
-    // }
-    std::cout << "\n7) attribute idx : ";
+    std::cout << "1) vertex Position : ";
+    for (iter = vertexPosition.begin(); iter != vertexPosition.end(); ++iter)
+    {
+       std::cout << *iter << " ";
+    }
+    std::cout << "\n2) vertex Normal : ";
+    std::vector<float>::iterator iter2;
+    for (iter2 = vertexNormal.begin(); iter2 != vertexNormal.end(); ++iter2)
+    {
+       std::cout << *iter2 << " ";
+    }
+    std::cout << "\n3) vertex Texture coord : ";
+    std::vector<float>::iterator iter3;
+    for (iter3 = vertexTexCoord.begin(); iter3 != vertexTexCoord.end(); ++iter3)
+    {
+       std::cout << *iter3 << " ";
+    }
+    std::cout << "\n4) vertex idx : ";
     std::vector<float>::iterator iter7;
     for (iter7 = attribute.begin(); iter7 != attribute.end(); ++iter7)
     {
        std::cout << *iter7 << " ";
     }
+
+    std::cout << "\n5) faces size: " << faces.size() << "\n";
+    
+    for (size_t i = 0; i < faces.size(); i++)
+    {
+
+    }
+
     std::cout << "\n8) diffuse idx : ";
     std::vector<float>::iterator iter8;
     for (iter8 = diffuse.begin(); iter8 != diffuse.end(); ++iter8)

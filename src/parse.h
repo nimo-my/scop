@@ -20,6 +20,7 @@ class Parse
     void makeVBO();
     void parseMtlFile();
     void setFileName(std::string name);
+    void normalizing();
 
   // for debug
     void printVertexInfo();
@@ -41,9 +42,7 @@ class Parse
     std::vector<float> vertexTexCoord; // 2
 
     // FACE data
-    std::vector<size_t> faceVertexIndex;
-    std::vector<size_t> faceNormalIndex;
-    std::vector<size_t> faceTexCoordIndex;
+    std::vector<std::vector<size_t>> faces; // 3개의 index가 vector<size_t> 형태로 들어가 있음
 
     // mtl file
     std::vector<float> attribute;
