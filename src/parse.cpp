@@ -180,7 +180,8 @@ void Parse::makeVBO()
 
 void Parse::normalizing()
 {
-
+    // initialize
+    
 }
 
 void Parse::printVertexInfo()

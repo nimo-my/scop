@@ -30,7 +30,7 @@ class Parse
     std::string mtlInfo;
     std::string filename;
     
-    // parsing
+    // === PARSING =============================
     std::string typePrefix;
     std::size_t vertexNormalIdx;
     std::size_t vertexTexIdx;
@@ -43,6 +43,9 @@ class Parse
 
     // FACE data
     std::vector<std::vector<size_t>> faces; // 3개의 index가 vector<size_t> 형태로 들어가 있음
+
+    // === NORMALIZING =============================
+    std::vector<std::vector<size_t>> normals;
 
     // mtl file
     std::vector<float> attribute;
