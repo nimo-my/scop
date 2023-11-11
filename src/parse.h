@@ -19,7 +19,7 @@ class Parse
     void makeVBO();
     void parseMtlFile();
     void setFileName(std::string name);
-    void normalizing(std::vector<size_t> facesLine);
+    void normalizing(glm::vec3 facesLine);
 
     // for debug
     void printVertexInfo();
@@ -36,21 +36,20 @@ class Parse
     std::size_t rangeLimit;
 
     // VERTEX data
-    std::vector<std::vector<float>> vertexPosition; // 3
-    std::vector<float> vertexNormal;   // 3
-    std::vector<float> vertexTexCoord; // 2
+    std::vector<glm::vec3> vertexPosition; // 3
+    std::vector<glm::vec3> vertexNormal;   // 3
+    std::vector<glm::vec2> vertexTexCoord; // 2
 
     // FACE data
-    std::vector<std::vector<size_t>> faces; // 3개의 index가 vector<size_t> 형태로 들어가 있음
+    std::vector<glm::vec3> faces;
 
     // === NORMALIZING =============================
     std::vector<glm::vec3> normals;
 
-
     // mtl file
-    std::vector<float> attribute;
-    std::vector<float> diffuse;
-    std::vector<float> specular;
+    glm::vec3 attribute;
+    glm::vec3 diffuse;
+    glm::vec3 specular;
 
     // === GLM =============================
 };
