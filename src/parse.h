@@ -10,22 +10,39 @@
 #include <string>
 #include <vector>
 
-// CLASS_PTR(Parse)
+struct VBOElements
+{
+    glm::vec3 vertexPosition; // 3
+    glm::vec3 vertexNormal;   // 3
+    glm::vec2 vertexTexCoord; // 2
+};
+
 class Parse
 {
   public:
     Parse();
-    void Parser(std::string filename);
-    void makeVBO();
+    std::unique_ptr<float[]> Parser(std::string filename);
+    std::unique_ptr<float[]> makeVBO();
     void parseMtlFile();
     void setFileName(std::string name);
     void normalizing(glm::vec3 facesLine);
 
     // for debug
     void printVertexInfo();
+
+    // getter
     std::string getFileName();
+    std::vector<glm::vec3> getFaces()
+    {
+        return faces;
+    }
+    std::vector<glm::vec3> getNormals()
+    {
+        return normals;
+    }
 
   private:
+    std::size_t debug_int = 0;
     std::string mtlInfo;
     std::string filename;
 

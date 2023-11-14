@@ -8,9 +8,7 @@
 ContextUPtr Context::Create()
 {
     auto context = ContextUPtr(new Context());
-    if (!context->Init())
-        return nullptr;
-    return std::move(context);
+    return (std::move(context));
 }
 
 void Context::MouseMove(double x, double y)
@@ -85,43 +83,17 @@ void Context::Reshape(int width, int height)
     glViewport(0, 0, m_width, m_height);
 }
 
-bool Context::Init()
+std::unique_ptr<Parse> Context::Init()
 {
     // ** PARSING **
     std::unique_ptr<Parse> parse(new Parse());
 
     std::string objFileName = "./resorces/";
-    objFileName += "42"; // NOTE : insert file name
+    objFileName += "box"; // NOTE : insert file name
     parse->setFileName(objFileName);
     objFileName += ".obj";
 
-    parse->Parser(objFileName); // 파싱부분
-
-    // float vertice[] = {
-    //     // vertex_pos.xyz, normal.xyz, texcoord.uv
-    //     -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f, 0.0f, 0.5f,  -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 1.0f, 0.0f,
-    //     0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, 1.0f, 1.0f, -0.5f, 0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f, 1.0f,
-
-    //     -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.5f,  -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 0.0f,
-    //     0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f, -0.5f, 0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 1.0f,
-
-    //     -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f,  1.0f, 0.0f, -0.5f, 0.5f,  -0.5f, -1.0f, 0.0f,  0.0f,  1.0f, 1.0f,
-    //     -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f,  0.0f, 1.0f, -0.5f, -0.5f, 0.5f,  -1.0f, 0.0f,  0.0f,  0.0f, 0.0f,
-
-    //     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.5f,  0.5f,  -0.5f, 1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-    //     0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.0f,  0.0f, 1.0f, 0.5f,  -0.5f, 0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-
-    //     -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  0.0f, 1.0f, 0.5f,  -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  1.0f, 1.0f,
-    //     0.5f,  -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,  1.0f, 0.0f, -0.5f, -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,  0.0f, 0.0f,
-
-    //     -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.5f,  0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
-    //     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f, -0.5f, 0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
-    // };
-
-    // uint32_t indices[] = {
-    //     0,  2,  1,  2,  0,  3,  4,  5,  6,  6,  7,  4,  8,  9,  10, 10, 11, 8,
-    //     12, 14, 13, 14, 12, 15, 16, 17, 18, 18, 19, 16, 20, 22, 21, 22, 20, 23,
-    // };
+    auto vertice = parse->Parser(objFileName); // 파싱부분
 
     // 순서 !!
     // [1] VAO binding :: vertex array obj 생성 & 바인딩
@@ -129,7 +101,8 @@ bool Context::Init()
 
     // [2] VBO binding :: 버텍스 버퍼 생성(generate)
     // TODO : vertice를 내가 구한 값들로 채워 넣어야 함! <- VBO를 만들어야 함!!
-    m_vertexBuffer = Buffer::CreateWithData(GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertice, sizeof(float) * 8 * 6 * 4);
+    m_vertexBuffer = Buffer::CreateWithData(GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertice.get(),
+                                            parse->getFaces().size() * sizeof(float) * 8);
 
     // [3] Vertex attribute setting
     // vertices의 위치를 각각 어떻게 구성할것인지!
@@ -139,22 +112,22 @@ bool Context::Init()
     m_vertexLayout->SetAttrib(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, sizeof(float) * 3);
     m_vertexLayout->SetAttrib(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, sizeof(float) * 6);
 
-    m_indexBuffer = Buffer::CreateWithData(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices, sizeof(uint32_t) * 36);
+    // m_indexBuffer = Buffer::CreateWithData(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices, sizeof(uint32_t) * 36);
 
     m_simpleProgram = Program::Create("./shader/simple.vs", "./shader/simple.fs");
     if (!m_simpleProgram)
-        return false;
+        exit(1);
 
     m_program = Program::Create("./shader/lighting.vs", "./shader/lighting.fs");
     if (!m_program)
-        return false;
+        exit(1);
 
     glClearColor(0.1f, 0.2f, 0.3f, 0.0f);
 
     // 로딩하는 코드
     auto image = Image::Load("./image/container.jpeg");
     if (!image)
-        return false;
+        exit(1);
     SPDLOG_INFO("image: {}x{}, {} channels", image->GetWidth(), image->GetHeight(), image->GetChannelCount());
 
     m_texture = Texture::CreateFromImage(image.get());
@@ -174,10 +147,10 @@ bool Context::Init()
     m_program->SetUniform("tex", 0);
     m_program->SetUniform("tex2", 1);
 
-    return true;
+    return (std::move(parse));
 }
 
-void Context::Render()
+void Context::Render(std::unique_ptr<Parse> &parse)
 {
     if (ImGui::Begin("ui window"))
     {
@@ -275,6 +248,6 @@ void Context::Render()
 
         m_program->SetUniform("transform", transform);
         m_program->SetUniform("modelTransform", model);
-        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+        glDrawArrays(GL_TRIANGLES, 0, parse->getFaces().size() * sizeof(float) * 8 * 3);
     }
 }

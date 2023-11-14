@@ -109,6 +109,8 @@ int main(int ac, char **av) {
         return -1;
     }
 
+    auto parse = context->Init();
+
     glfwSetWindowUserPointer(window, context.get());
     glfwSetFramebufferSizeCallback(window, OnFramebufferSizeChange);
     glfwSetKeyCallback(window, OnKeyEvent);
@@ -125,7 +127,7 @@ int main(int ac, char **av) {
         ImGui::NewFrame();
 
         context->ProcessInput(window);
-        context->Render();
+        context->Render(parse);
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
