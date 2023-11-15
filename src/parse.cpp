@@ -42,13 +42,13 @@ std::unique_ptr<float[]> Parse::Parser(std::string filename)
 
             if (!ss >> vertexIdx4)
             {
-                vertexBuffer = {vertexIdx1 - 1, vertexIdx2 - 1, vertexIdx3 - 1};
+                vertexBuffer = {vertexIdx1, vertexIdx2, vertexIdx3};
                 this->faces.push_back(vertexBuffer);
             }
             else
             {
-                this->faces.push_back(glm::vec3{vertexIdx1 - 1, vertexIdx2 - 1, vertexIdx3 - 1});
-                this->faces.push_back(glm::vec3{vertexIdx1 - 1, vertexIdx3 - 1, vertexIdx4 - 1});
+                this->faces.push_back(glm::vec3{vertexIdx1, vertexIdx2, vertexIdx3});
+                this->faces.push_back(glm::vec3{vertexIdx1, vertexIdx3, vertexIdx4});
             }
 
             // if (vertexIdxInfoStream.peek() == '/') // .peek() : 스트림에서 빼오지는 않고 읽기만 한다
@@ -172,96 +172,105 @@ void Parse::parseMtlFile()
     }
 }
 
+void Parse::makeTexture()
+{
+    glm::vec2 max;
+    glm::vec2 min;
+    // y 축 하나 없애기 -> x의 Min, max, z의 min, max 구하기 (vertex 돌면서)
+    for (glm::vec3 vec : vertexPosition)
+    {
+        max[0] = max[0] > vec[0] ? max[0] : vec[0]; // x축 max
+        max[1] = max[1] > vec[2] ? max[1] : vec[2]; // z축 max
+
+        min[0] = min[0] < vec[0] ? min[0] : vec[0]; // x축 min
+        min[1] = min[1] < vec[2] ? min[1] : vec[2]; // z축 min
+    }
+
+    float xLength = max[0] - min[0];
+    float xMin = min[0];
+    float zLength = max[1] - min[1];
+    float zMin = min[1];
+    // 나온 값을 정규화(클리핑) 공식에 대입하기 (min-max scaler)
+    // 나온 값을 vertexTexture 에 넣기
+    vertexTexCoord.clear();
+    vertexTexCoord.assign(vertexPosition.size(), glm::vec2());
+    for (int vertexIdx = 0; vertexIdx < vertexPosition.size(); vertexIdx++)
+    {
+        vertexTexCoord[vertexIdx].x = (vertexPosition[vertexIdx].x - xMin) / xLength;
+        vertexTexCoord[vertexIdx].y = (vertexPosition[vertexIdx].z - zMin) / zLength;
+    }
+}
+
 std::unique_ptr<float[]> Parse::makeVBO()
 {
-    normals.resize(faces.size());
-    for (glm::vec3 line : faces) // line : v의 index number
+    // vertexNormal.resize(faces.size());
+    vertexNormal.clear();
+    vertexNormal.assign(vertexPosition.size(), glm::vec3());
+
+    for (glm::vec3 line : faces) // line : v의 index number(삼각형으로 쪼개준 상태)
     {
-        std::cout << "faces : " << glm::to_string(line) << std::endl;
         normalizing(line); // make vertex normal
     }
+    for (glm::vec3 &vn : vertexNormal)
+    {
+        vn = glm::normalize(vn);
+    }
+    makeTexture();
+
+    // vbo array 만들기
     size_t size = faces.size();
     auto VBO = std::unique_ptr<float[]>(new float[size * 8 * 3]);
 
-    // 보정
-    for (int count = vertexTexCoord.size(); count != faces.size(); count++)
-    {
-        vertexTexCoord.push_back({'0.0f', '0.0f'});
-    }
-    for (int count = normals.size(); count != faces.size(); count++)
-    {
-        normals.push_back({'0.0f', '0.0f', '0.0f'});
-    }
-
     std::vector<std::vector<VBOElements>> VBOBuffer;
 
-    for (size_t j = 0; j < size; j++)
+    // for (int idx = 0; idx < size; idx++)
+    // {
+    //     for (int idx2 = 0; idx2 < 3; idx2++)
+    //     {
+    //         // int vertexIdx = faces[i][idx];
+    //         // VBOBuffer[i].push_back({vertexPosition[vertexIdx], vertexNormal[vertexIdx],
+    //         vertexTexCoord[vertexIdx]});
+    //     }
+    // }
+
+    for (int LineIdx = 0; LineIdx < size; LineIdx++)
     {
-        std::vector<VBOElements> buffer;
-        for (size_t i = 0; i < 3; i++)
+        for (int idx = 0; idx < 3; idx++)
         {
-            // FIXME =========================
-            // 3개의 인자 (ex - 5/1/1) 를 담는다
-            auto &v = this->faces[j][i];
-            auto &vn = this->normals[j][i];
-            auto &vt = this->vertexTexCoord[j][i];
+            uint32_t vertexIdx = faces[LineIdx][idx];
+            VBO[(LineIdx * 8 * 3) + (idx * 8)] = vertexPosition[vertexIdx - 1].x;
+            VBO[(LineIdx * 8 * 3) + (idx * 8) + 1] = vertexPosition[vertexIdx - 1].y;
+            VBO[(LineIdx * 8 * 3) + (idx * 8) + 2] = vertexPosition[vertexIdx - 1].z;
 
-            glm::vec3 array = {v, vn, vt};
-            // FIXME =========================
-            buffer.push_back(array);
-        }
-        VBOBuffer.push_back(buffer);
-    }
+            VBO[(LineIdx * 8 * 3) + (idx * 8) + 3] = vertexNormal[vertexIdx - 1].x;
+            VBO[(LineIdx * 8 * 3) + (idx * 8) + 4] = vertexNormal[vertexIdx - 1].y;
+            VBO[(LineIdx * 8 * 3) + (idx * 8) + 5] = vertexNormal[vertexIdx - 1].z;
 
-    for (int idx = 0; idx < size; idx++)
-    {
-        for (int faceIdx = 0; faceIdx < 3; faceIdx++)
-        {
-            // std::cout << "============idx: " << idx << "=================\n ";
-            // std::cout << "vertexPosition[0]" << vertexPosition[faces[idx][0]][faceIdx] << std::endl;
-            // std::cout << "vertexPosition[1]" << vertexPosition[faces[idx][1]][1] << std::endl;
-            // std::cout << "vertexPosition[2]" << vertexPosition[faces[idx][2]][2] << std::endl;
-
-            // std::cout << "normals[0]" << normals[idx][0] << std::endl;
-            // std::cout << "normals[1]" << normals[idx][1] << std::endl;
-            // std::cout << "normals[2]" << normals[idx][2] << std::endl;
-
-            // std::cout << "vertex texture [0]" << vertexTexCoord[idx][0] << std::endl;
-            // std::cout << "vertex texture [1]" << vertexTexCoord[idx][1] << std::endl;
-            // std::cout << "================================================\n\n ";
-
-            VBO[(idx * 8 * 3) + (faceIdx * 8)] = VBOBuffer[idx][faceIdx].vertexPosition[0];     // vertex.x
-            VBO[(idx * 8 * 3) + (faceIdx * 8) + 1] = VBOBuffer[idx][faceIdx].vertexPosition[1]; // vertex.y
-            VBO[(idx * 8 * 3) + (faceIdx * 8) + 2] = VBOBuffer[idx][faceIdx].vertexPosition[2]; // vertex.z
-            VBO[(idx * 8 * 3) + (faceIdx * 8) + 3] = VBOBuffer[idx][faceIdx].vertexNormal[0];   // vertexNormals.x
-            VBO[(idx * 8 * 3) + (faceIdx * 8) + 4] = VBOBuffer[idx][faceIdx].vertexNormal[1];   // vertexNormals.y
-            VBO[(idx * 8 * 3) + (faceIdx * 8) + 5] = VBOBuffer[idx][faceIdx].vertexNormal[2];   // vertexNormals.z
-            VBO[(idx * 8 * 3) + (faceIdx * 8) + 6] = VBOBuffer[idx][faceIdx].vertexTexCoord[0];
-            VBO[(idx * 8 * 3) + (faceIdx * 8) + 7] = VBOBuffer[idx][faceIdx].vertexTexCoord[1];
+            VBO[(LineIdx * 8 * 3) + (idx * 8) + 6] = vertexTexCoord[vertexIdx - 1].x;
+            VBO[(LineIdx * 8 * 3) + (idx * 8) + 7] = vertexTexCoord[vertexIdx- 1].y;
         }
     }
 
     return (std::move(VBO));
 }
 
-void Parse::normalizing(glm::vec3 facesLine)
+void Parse::normalizing(glm::vec3 facesLine) // v 5 7 1
 {
-    glm::vec3 v1 = vertexPosition[facesLine[0]];
-    glm::vec3 v2 = vertexPosition[facesLine[1]];
-    glm::vec3 v3 = vertexPosition[facesLine[2]];
+    // 점 3개
+    glm::vec3 v1 = vertexPosition[facesLine[0] - 1];
+    glm::vec3 v2 = vertexPosition[facesLine[1] - 1];
+    glm::vec3 v3 = vertexPosition[facesLine[2] - 1];
 
+    // 두 점끼리 이어서 벡터를 만듦
     glm::vec3 vec1 = {v2[0] - v1[0], v2[1] - v1[1], v2[2] - v1[2]};
     glm::vec3 vec2 = {v3[0] - v1[0], v3[1] - v1[1], v3[2] - v1[2]};
 
-    glm::vec3 crossed = glm::cross(vec1, vec2);
-    std::cout << "crossed : " << glm::to_string(crossed) << std::endl;
-    glm::vec3 normal = glm::normalize(crossed);
-    std::cout << "normal : " << glm::to_string(normal) << "\n\n" << std::endl;
-    // std::cout << glm::to_string(normal) << std::endl;
+    glm::vec3 normal = glm::normalize(glm::cross(vec1, vec2));
+    std::cout << "normal : " << glm::to_string(normal) << std::endl;
 
-    normals[facesLine[0]] = glm::normalize(normal + normals[facesLine[0]]);
-    normals[facesLine[1]] = glm::normalize(normal + normals[facesLine[1]]);
-    normals[facesLine[2]] = glm::normalize(normal + normals[facesLine[2]]);
+    vertexNormal[facesLine[0] - 1] += normal;
+    vertexNormal[facesLine[1] - 1] += normal;
+    vertexNormal[facesLine[2] - 1] += normal;
 }
 
 void Parse::printVertexInfo()

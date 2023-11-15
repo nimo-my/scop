@@ -12,9 +12,9 @@
 
 struct VBOElements
 {
-    glm::vec3 vertexPosition; // 3
-    glm::vec3 vertexNormal;   // 3
-    glm::vec2 vertexTexCoord; // 2
+    glm::vec3 v;  // 3
+    glm::vec3 vn; // 3
+    glm::vec2 vt; // 2
 };
 
 class Parse
@@ -24,6 +24,7 @@ class Parse
     std::unique_ptr<float[]> Parser(std::string filename);
     std::unique_ptr<float[]> makeVBO();
     void parseMtlFile();
+    void makeTexture();
     void setFileName(std::string name);
     void normalizing(glm::vec3 facesLine);
 
@@ -38,7 +39,7 @@ class Parse
     }
     std::vector<glm::vec3> getNormals()
     {
-        return normals;
+        return vertexNormal;
     }
 
   private:
@@ -59,9 +60,9 @@ class Parse
 
     // FACE data
     std::vector<glm::vec3> faces;
+    
 
     // === NORMALIZING =============================
-    std::vector<glm::vec3> normals;
 
     // mtl file
     glm::vec3 attribute;

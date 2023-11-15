@@ -102,7 +102,7 @@ std::unique_ptr<Parse> Context::Init()
     // [2] VBO binding :: 버텍스 버퍼 생성(generate)
     // TODO : vertice를 내가 구한 값들로 채워 넣어야 함! <- VBO를 만들어야 함!!
     m_vertexBuffer = Buffer::CreateWithData(GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertice.get(),
-                                            parse->getFaces().size() * sizeof(float) * 8);
+                                            parse->getFaces().size() * sizeof(float) * 8 * 3);
 
     // [3] Vertex attribute setting
     // vertices의 위치를 각각 어떻게 구성할것인지!
@@ -125,7 +125,7 @@ std::unique_ptr<Parse> Context::Init()
     glClearColor(0.1f, 0.2f, 0.3f, 0.0f);
 
     // 로딩하는 코드
-    auto image = Image::Load("./image/container.jpeg");
+    auto image = Image::Load("./image/container2.png");
     if (!image)
         exit(1);
     SPDLOG_INFO("image: {}x{}, {} channels", image->GetWidth(), image->GetHeight(), image->GetChannelCount());
@@ -191,10 +191,7 @@ void Context::Render(std::unique_ptr<Parse> &parse)
     ImGui::End();
 
     std::vector<glm::vec3> cubePositions = {
-        glm::vec3(0.0f, 0.0f, 0.0f),     glm::vec3(2.0f, 5.0f, -15.0f), glm::vec3(-1.5f, -2.2f, -2.5f),
-        glm::vec3(-3.8f, -2.0f, -12.3f), glm::vec3(2.4f, -0.4f, -3.5f), glm::vec3(-1.7f, 3.0f, -7.5f),
-        glm::vec3(1.3f, -2.0f, -2.5f),   glm::vec3(1.5f, 2.0f, -2.5f),  glm::vec3(1.5f, 0.2f, -1.5f),
-        glm::vec3(-1.3f, 1.0f, -1.5f),
+        glm::vec3(0.0f, 0.0f, 0.0f),
     };
 
     // 버퍼 초기화
@@ -248,6 +245,6 @@ void Context::Render(std::unique_ptr<Parse> &parse)
 
         m_program->SetUniform("transform", transform);
         m_program->SetUniform("modelTransform", model);
-        glDrawArrays(GL_TRIANGLES, 0, parse->getFaces().size() * sizeof(float) * 8 * 3);
+        glDrawArrays(GL_TRIANGLES, 0, parse->getFaces().size() * 8 * 3);
     }
 }
