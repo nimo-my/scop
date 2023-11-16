@@ -13,12 +13,12 @@ ContextUPtr Context::Create()
 
 void Context::MouseMove(double x, double y)
 {
-    if (!m_cameraControl)
-        return;
+    // if (!m_cameraControl)
+    //     return;
     auto pos = glm::vec2((float)x, (float)y);
     auto deltaPos = pos - m_prevMousePos;
 
-    const float cameraRotSpeed = 0.8f;
+    const float cameraRotSpeed = 0.01f;
     m_cameraYaw -= deltaPos.x * cameraRotSpeed;
     m_cameraPitch -= deltaPos.y * cameraRotSpeed;
 
@@ -54,8 +54,8 @@ void Context::MouseButton(int button, int action, double x, double y)
 
 void Context::ProcessInput(GLFWwindow *window)
 {
-    if (!m_cameraControl)
-        return;
+    // if (!m_cameraControl)
+    //     return;
 
     const float cameraSpeed = 0.05f;
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
@@ -89,7 +89,7 @@ std::unique_ptr<Parse> Context::Init()
     std::unique_ptr<Parse> parse(new Parse());
 
     std::string objFileName = "./resorces/";
-    objFileName += "box"; // NOTE : insert file name
+    objFileName += "42"; // NOTE : insert file name
     parse->setFileName(objFileName);
     objFileName += ".obj";
 
@@ -114,9 +114,6 @@ std::unique_ptr<Parse> Context::Init()
 
     // m_indexBuffer = Buffer::CreateWithData(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices, sizeof(uint32_t) * 36);
 
-    m_simpleProgram = Program::Create("./shader/simple.vs", "./shader/simple.fs");
-    if (!m_simpleProgram)
-        exit(1);
 
     m_program = Program::Create("./shader/lighting.vs", "./shader/lighting.fs");
     if (!m_program)
@@ -125,27 +122,9 @@ std::unique_ptr<Parse> Context::Init()
     glClearColor(0.1f, 0.2f, 0.3f, 0.0f);
 
     // 로딩하는 코드
-    auto image = Image::Load("./image/container2.png");
-    if (!image)
-        exit(1);
-    SPDLOG_INFO("image: {}x{}, {} channels", image->GetWidth(), image->GetHeight(), image->GetChannelCount());
 
-    m_texture = Texture::CreateFromImage(image.get());
-
-    auto image2 = Image::Load("./image/cat.png");
-    m_texture2 = Texture::CreateFromImage(image2.get());
-
-    m_material.diffuse = Texture::CreateFromImage(Image::Load("./image/container2.png").get());
-    m_material.specular = Texture::CreateFromImage(Image::Load("./image/container2_specular.png").get());
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_texture->Get());
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, m_texture2->Get());
-
-    m_program->Use();
-    m_program->SetUniform("tex", 0);
-    m_program->SetUniform("tex2", 1);
+    m_material.texDiffuse = Texture::CreateFromImage(Image::Load("./image/rabbit.png").get());
+    m_material.texSpecular = Texture::CreateFromImage(Image::Load("./image/container2_specular.png").get());
 
     return (std::move(parse));
 }
@@ -154,30 +133,12 @@ void Context::Render(std::unique_ptr<Parse> &parse)
 {
     if (ImGui::Begin("ui window"))
     {
-        if (ImGui::CollapsingHeader("light", ImGuiTreeNodeFlags_DefaultOpen))
-        {
-            ImGui::DragFloat3("l.position", glm::value_ptr(m_light.position), 0.01f);
-            ImGui::DragFloat("l.direction", glm::value_ptr(m_light.direction), 0.01f);
-            ImGui::DragFloat("l.cutoff", &m_light.cutoff, 0.5f, 0.0f, 90.0f);
-            ImGui::DragFloat3("l.distance", &m_light.distance, 0.5f, 0.0f, 3000.0f);
-            ImGui::ColorEdit3("l.ambient", glm::value_ptr(m_light.ambient));
-            ImGui::ColorEdit3("l.diffuse", glm::value_ptr(m_light.diffuse));
-            ImGui::ColorEdit3("l.specular", glm::value_ptr(m_light.specular));
-        }
-
-        if (ImGui::CollapsingHeader("material", ImGuiTreeNodeFlags_DefaultOpen))
-        {
-            ImGui::DragFloat("m.shininess", &m_material.shininess, 1.0f, 1.0f, 256.0f);
-        }
-
-        ImGui::Checkbox("animation", &m_animation);
-
         if (ImGui::ColorEdit4("clear color", glm::value_ptr(m_clearColor)))
         {
-            glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
+            glClearColor(m_clearColor.x, m_clearColor.y, m_clearColor.z, m_clearColor.w);
         }
         ImGui::Separator();
-        ImGui::DragFloat3("camera pos", glm::value_ptr(m_cameraPos), 0.01f); // (마지막 인자) v-speed 줄여좋
+        ImGui::DragFloat3("camera pos", glm::value_ptr(m_cameraPos), 0.01f);
         ImGui::DragFloat("camera yaw", &m_cameraYaw, 0.5f);
         ImGui::DragFloat("camera pitch", &m_cameraPitch, 0.5f, -89.0f, 89.0f);
         ImGui::Separator();
@@ -187,12 +148,28 @@ void Context::Render(std::unique_ptr<Parse> &parse)
             m_cameraPitch = 0.0f;
             m_cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
         }
+        if (ImGui::CollapsingHeader("light", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            ImGui::DragFloat3("l.position", glm::value_ptr(m_light.position), 0.01f);
+            ImGui::DragFloat3("l.direction", glm::value_ptr(m_light.direction), 0.01f);
+            //ImGui::DragFloat2("l.cutoff", glm::value_ptr(m_light.cutoff), 0.5f, 0.0f, 180.0f);
+            ImGui::DragFloat("l.distance", &m_light.distance, 0.5f, 0.0f, 3000.0f);
+            ImGui::ColorEdit3("l.ambient", glm::value_ptr(m_light.ambient));
+            ImGui::ColorEdit3("l.diffuse", glm::value_ptr(m_light.diffuse));
+            ImGui::ColorEdit3("l.specular", glm::value_ptr(m_light.specular));
+        }
+
+        if (ImGui::CollapsingHeader("material", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            ImGui::ColorEdit3("m.ambient", glm::value_ptr(m_material.attribute.ambient));
+            ImGui::ColorEdit3("m.diffuse", glm::value_ptr(m_material.attribute.diffuse));
+            ImGui::ColorEdit3("m.specular", glm::value_ptr(m_material.attribute.specular));
+            ImGui::DragFloat("m.shininess", &m_material.attribute.shininess, 1.0f, 1.0f, 256.0f);
+        }
+        ImGui::Checkbox("animation", &m_animation);
+        ImGui::Checkbox("texture", &m_texture);
     }
     ImGui::End();
-
-    std::vector<glm::vec3> cubePositions = {
-        glm::vec3(0.0f, 0.0f, 0.0f),
-    };
 
     // 버퍼 초기화
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -207,44 +184,45 @@ void Context::Render(std::unique_ptr<Parse> &parse)
 
     auto view = glm::lookAt(m_cameraPos, m_cameraPos + m_cameraFront, m_cameraUp);
 
-    auto lightModelTransform =
-        glm::translate(glm::mat4(1.0), m_light.position) * glm::scale(glm::mat4(1.0), glm::vec3(0.1f));
-    m_program->Use();
-    m_simpleProgram->Use();
-    m_simpleProgram->SetUniform("color", glm::vec4(m_light.ambient + m_light.diffuse, 1.0f));
-    m_simpleProgram->SetUniform("transform", projection * view * lightModelTransform);
-    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    // auto lightModelTransform =
+    //     glm::translate(glm::mat4(1.0), m_light.position) * glm::scale(glm::mat4(1.0), glm::vec3(0.1f));
+    // m_program->Use();
+    // m_simpleProgram->Use();
+    // m_simpleProgram->SetUniform("color", glm::vec4(m_light.ambient + m_light.diffuse, 1.0f));
+    // m_simpleProgram->SetUniform("transform", projection * view * lightModelTransform);
+    // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
     m_program->Use();
     m_program->SetUniform("viewPos", m_cameraPos);
     m_program->SetUniform("light.position", m_light.position);
-    m_program->SetUniform("light.attenuation", GetAttenuationCoeff(m_light.distance));
+    // m_program->SetUniform("light.attenuation", GetAttenuationCoeff(m_light.distance));
     m_program->SetUniform("light.direction", m_light.direction);
-    m_program->SetUniform("light.cutoff", cosf(glm::radians(m_light.cutoff)));
+    // m_program->SetUniform("light.cutoff", cosf(glm::radians(m_light.cutoff)));
     m_program->SetUniform("light.ambient", m_light.ambient);
     m_program->SetUniform("light.diffuse", m_light.diffuse);
     m_program->SetUniform("light.specular", m_light.specular);
-    m_program->SetUniform("material.diffuse", 0);
-    m_program->SetUniform("material.specular", 1);
-    m_program->SetUniform("material.shininess", m_material.shininess);
+
+    m_program->SetUniform("material.ambient", m_material.attribute.ambient);
+    m_program->SetUniform("material.diffuse", m_material.attribute.diffuse);
+    m_program->SetUniform("material.TexDiffuse", 0);
+
+    m_program->SetUniform("material.specular", m_material.attribute.specular);
+    m_program->SetUniform("material.shininess", m_material.attribute.shininess);
+    m_program->SetUniform("m_texture", m_texture);
 
     glActiveTexture(GL_TEXTURE0);
-    m_material.diffuse->Bind();
+    m_material.texDiffuse->Bind();
 
     glActiveTexture(GL_TEXTURE1);
-    m_material.specular->Bind();
+    m_material.texSpecular->Bind();
 
-    for (size_t i = 0; i < cubePositions.size(); i++)
-    {
-        auto &pos = cubePositions[i];
-        auto model = glm::translate(glm::mat4(1.0f), pos);
-        auto angle = glm::radians((m_animation ? (float)glfwGetTime() : 0.0f) * 120.0f + 20.0f * (float)i);
+    auto model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -10.0f));
+    auto angle = glm::radians((m_animation ? (float)glfwGetTime() : 0.0f) * 120.0f);
 
-        model = glm::rotate(model, m_animation ? angle : 0.0f, glm::vec3(1.0f, 0.5f, 0.0f));
-        auto transform = projection * view * model;
+    model = glm::rotate(model, angle, glm::vec3(0.0f, 1.0f, 0.0f));
+    auto transform = projection * view * model;
 
-        m_program->SetUniform("transform", transform);
-        m_program->SetUniform("modelTransform", model);
-        glDrawArrays(GL_TRIANGLES, 0, parse->getFaces().size() * 8 * 3);
-    }
+    m_program->SetUniform("transform", transform);
+    m_program->SetUniform("modelTransform", model);
+    glDrawArrays(GL_TRIANGLES, 0, parse->getFaces().size() * 8 * 3);
 }

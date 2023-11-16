@@ -43,15 +43,11 @@ class Parse
     }
 
   private:
-    std::size_t debug_int = 0;
     std::string mtlInfo;
     std::string filename;
 
     // === PARSING =============================
     std::string typePrefix;
-    std::size_t vertexNormalIdx;
-    std::size_t vertexTexIdx;
-    std::size_t rangeLimit;
 
     // VERTEX data
     std::vector<glm::vec3> vertexPosition; // 3

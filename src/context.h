@@ -9,6 +9,21 @@
 #include "texture.h"
 #include "vertex_layout.h"
 
+struct Material
+{
+    std::string name;
+
+    glm::vec3 ambient;
+    glm::vec3 diffuse;
+    glm::vec3 specular;
+    float shininess;
+
+    std::string ambientTexture;
+    std::string diffuseTexture;
+    std::string specularTexture;
+    std::string shininessTexture;
+};
+
 CLASS_PTR(Context)
 class Context
 {
@@ -32,11 +47,12 @@ class Context
     VertexLayoutUPtr m_vertexLayout;
     BufferUPtr m_vertexBuffer;
     BufferUPtr m_indexBuffer;
-    TextureUPtr m_texture;
-    TextureUPtr m_texture2;
+    // TextureUPtr m_texture;
+    // TextureUPtr m_texture2;
 
     // animation
     bool m_animation{false};
+    bool m_texture{true};
 
     // camera parameter
     float m_cameraPitch{0.0f};
@@ -78,13 +94,13 @@ class Context
     Light m_light;
 
     // material parameter
-    struct Material
+    struct TexMaterial
     {
-        TextureUPtr diffuse;
-        TextureUPtr specular;
-        float shininess{32.0f};
+        TextureUPtr texDiffuse;
+        TextureUPtr texSpecular;
+        Material attribute{"None", glm::vec3(0.3f), glm::vec3(0.6f), glm::vec3(0.5f), 1.0f, "", "", "", ""};
     };
-    Material m_material;
+    TexMaterial m_material;
 };
 
 #endif // __CONTEXT_H__

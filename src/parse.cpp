@@ -1,6 +1,6 @@
 #include "parse.h"
 
-Parse::Parse() : mtlInfo(""), typePrefix(""), vertexNormalIdx(0), vertexTexIdx(0), rangeLimit(0)
+Parse::Parse() : mtlInfo(""), typePrefix("")
 {
 }
 
@@ -30,20 +30,37 @@ std::unique_ptr<float[]> Parse::Parser(std::string filename)
             buffer[0] = vert1;
             buffer[1] = vert2;
             buffer[2] = vert3;
-            rangeLimit++;
+
             vertexPosition.push_back(buffer);
+        }
+        else if (typePrefix == "vn") // vertex normals
+        {
+            float vn1 = 0.0f, vn2 = 0.0f, vn3 = 0.0f;
+            ss >> vn1 >> vn2 >> vn3;
+            glm::vec3 buffer;
+            buffer[0] = vn1;
+            buffer[1] = vn2;
+            buffer[2] = vn3;
+            this->vertexNormal.push_back(buffer);
+        }
+        else if (typePrefix == "vt") // vertex textures
+        {
+            float vt1 = 0.0f, vt2 = 0.0f;
+            ss >> vt1 >> vt2;
+
+            glm::vec2 buffer;
+            buffer[0] = vt1;
+            buffer[1] = vt2;
+            this->vertexTexCoord.push_back(buffer);
         }
         else if (typePrefix == "f") // vertex face information
         {
             std::size_t vertexIdx1 = 0, vertexIdx2 = 0, vertexIdx3 = 0, vertexIdx4 = 0;
             ss >> vertexIdx1 >> vertexIdx2 >> vertexIdx3 >> vertexIdx4;
 
-            glm::vec3 vertexBuffer;
-
             if (!ss >> vertexIdx4)
             {
-                vertexBuffer = {vertexIdx1, vertexIdx2, vertexIdx3};
-                this->faces.push_back(vertexBuffer);
+                this->faces.push_back(glm::vec3{vertexIdx1, vertexIdx2, vertexIdx3});
             }
             else
             {
@@ -71,60 +88,10 @@ std::unique_ptr<float[]> Parse::Parser(std::string filename)
             parseMtlFile();
         typePrefix = ""; // typePrefix 초기화
     }
+
     file.close();
 
-    std::ifstream file2(filename);
-    if (!file2.is_open())
-    {
-        std::cout << "Error! :: " << filename << " can't be opened.";
-        exit(1);
-    }
-    line = "";
-    while (std::getline(file2, line))
-    {
-        std::istringstream ss(line);
-        ss >> typePrefix;
-        if (!this->vertexPosition.empty())
-        {
-            if (typePrefix == "vn") // vertex normals
-            {
-                float vn1 = 0.0f, vn2 = 0.0f, vn3 = 0.0f;
-                ss >> vn1 >> vn2 >> vn3;
-                if (rangeLimit == vertexNormalIdx)
-                    break;
-                else
-                {
-                    glm::vec3 buffer;
-                    buffer[0] = vn1;
-                    buffer[1] = vn2;
-                    buffer[2] = vn3;
-                    this->vertexNormal.push_back(buffer);
-                    vertexNormalIdx++;
-                }
-            }
-            else if (typePrefix == "vt") // vertex textures
-            {
-                float vt1 = 0.0f, vt2 = 0.0f;
-                ss >> vt1 >> vt2;
-                if (rangeLimit == vertexTexIdx)
-                    break;
-                else
-                {
-                    glm::vec2 buffer;
-                    buffer[0] = vt1;
-                    buffer[1] = vt2;
-                    this->vertexTexCoord.push_back(buffer);
-                    vertexTexIdx++;
-                }
-            }
-        }
-        typePrefix = ""; // typePrefix 초기화
-    }
-
-    file2.close();
-
-    auto res = makeVBO();
-    return (res);
+    return (makeVBO());
 }
 
 void Parse::parseMtlFile()
@@ -150,7 +117,6 @@ void Parse::parseMtlFile()
             attribute[0] = vert1;
             attribute[1] = vert2;
             attribute[2] = vert3;
-            rangeLimit++;
         }
         else if (typePrefix == "Kd") // vertex face information
         {
@@ -174,30 +140,45 @@ void Parse::parseMtlFile()
 
 void Parse::makeTexture()
 {
-    glm::vec2 max;
-    glm::vec2 min;
+    float zMax = 0.0f;
+    float zMin = 0.0f;
+
+    glm::vec2 max = glm::vec2();
+    glm::vec2 min = glm::vec2();
     // y 축 하나 없애기 -> x의 Min, max, z의 min, max 구하기 (vertex 돌면서)
     for (glm::vec3 vec : vertexPosition)
     {
         max[0] = max[0] > vec[0] ? max[0] : vec[0]; // x축 max
-        max[1] = max[1] > vec[2] ? max[1] : vec[2]; // z축 max
+        max[1] = max[1] > vec[1] ? max[1] : vec[1]; // y축 max
 
         min[0] = min[0] < vec[0] ? min[0] : vec[0]; // x축 min
-        min[1] = min[1] < vec[2] ? min[1] : vec[2]; // z축 min
+        min[1] = min[1] < vec[1] ? min[1] : vec[1]; // y축 min
+
+        zMax = zMax > vec[2] ? zMax : vec[2];
+        zMin = zMin < vec[2] ? zMin : vec[2];
     }
 
     float xLength = max[0] - min[0];
+    float yLength = max[1] - min[1];
     float xMin = min[0];
-    float zLength = max[1] - min[1];
-    float zMin = min[1];
+    float yMin = min[1];
+    std::cout << "(xLength :: " << xLength << ", yLength :: " << yLength << ", zLength :: " << zMax - zMin << ", xMin :: " << xMin << ", yMin :: " << yMin
+              << ") " << std::endl;
+
     // 나온 값을 정규화(클리핑) 공식에 대입하기 (min-max scaler)
     // 나온 값을 vertexTexture 에 넣기
     vertexTexCoord.clear();
     vertexTexCoord.assign(vertexPosition.size(), glm::vec2());
     for (int vertexIdx = 0; vertexIdx < vertexPosition.size(); vertexIdx++)
     {
+        // std::cout << "XXX POS :: " << vertexIdx << ", pos x :: " << vertexPosition[vertexIdx].x << " , "
+        //           << ", pos z :: " << vertexPosition[vertexIdx].z << std::endl;
+
         vertexTexCoord[vertexIdx].x = (vertexPosition[vertexIdx].x - xMin) / xLength;
-        vertexTexCoord[vertexIdx].y = (vertexPosition[vertexIdx].z - zMin) / zLength;
+        vertexTexCoord[vertexIdx].y = (vertexPosition[vertexIdx].y - yMin) / yLength;
+
+        // std::cout << "XXX TEX :: " << vertexIdx << ", tex x :: " << vertexTexCoord[vertexIdx].x << " , "
+        //           << ", tex y :: " << vertexTexCoord[vertexIdx].y << std::endl;
     }
 }
 
@@ -220,19 +201,7 @@ std::unique_ptr<float[]> Parse::makeVBO()
     // vbo array 만들기
     size_t size = faces.size();
     auto VBO = std::unique_ptr<float[]>(new float[size * 8 * 3]);
-
-    std::vector<std::vector<VBOElements>> VBOBuffer;
-
-    // for (int idx = 0; idx < size; idx++)
-    // {
-    //     for (int idx2 = 0; idx2 < 3; idx2++)
-    //     {
-    //         // int vertexIdx = faces[i][idx];
-    //         // VBOBuffer[i].push_back({vertexPosition[vertexIdx], vertexNormal[vertexIdx],
-    //         vertexTexCoord[vertexIdx]});
-    //     }
-    // }
-
+    
     for (int LineIdx = 0; LineIdx < size; LineIdx++)
     {
         for (int idx = 0; idx < 3; idx++)
@@ -247,7 +216,7 @@ std::unique_ptr<float[]> Parse::makeVBO()
             VBO[(LineIdx * 8 * 3) + (idx * 8) + 5] = vertexNormal[vertexIdx - 1].z;
 
             VBO[(LineIdx * 8 * 3) + (idx * 8) + 6] = vertexTexCoord[vertexIdx - 1].x;
-            VBO[(LineIdx * 8 * 3) + (idx * 8) + 7] = vertexTexCoord[vertexIdx- 1].y;
+            VBO[(LineIdx * 8 * 3) + (idx * 8) + 7] = vertexTexCoord[vertexIdx - 1].y;
         }
     }
 
