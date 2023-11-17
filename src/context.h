@@ -30,8 +30,8 @@ class Context
   public:
     static ContextUPtr Create();
     std::unique_ptr<Parse> Init();
-    void MouseMove(double x, double y);
     void MouseButton(int button, int action, double x, double y);
+    void MouseMove(double x, double y);
     void ProcessInput(GLFWwindow *window);
     void Reshape(int width, int height);
 

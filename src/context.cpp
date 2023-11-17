@@ -11,30 +11,6 @@ ContextUPtr Context::Create()
     return (std::move(context));
 }
 
-void Context::MouseMove(double x, double y)
-{
-    // if (!m_cameraControl)
-    //     return;
-    auto pos = glm::vec2((float)x, (float)y);
-    auto deltaPos = pos - m_prevMousePos;
-
-    const float cameraRotSpeed = 0.01f;
-    m_cameraYaw -= deltaPos.x * cameraRotSpeed;
-    m_cameraPitch -= deltaPos.y * cameraRotSpeed;
-
-    if (m_cameraYaw < 0.0f)
-        m_cameraYaw += 360.0f;
-    if (m_cameraYaw > 360.0f)
-        m_cameraYaw -= 360.0f;
-
-    if (m_cameraPitch > 89.0f)
-        m_cameraPitch = 89.0f;
-    if (m_cameraPitch < -89.0f)
-        m_cameraPitch = -89.0f;
-
-    m_prevMousePos = pos;
-}
-
 void Context::MouseButton(int button, int action, double x, double y)
 {
     if (button == GLFW_MOUSE_BUTTON_RIGHT)
@@ -52,21 +28,43 @@ void Context::MouseButton(int button, int action, double x, double y)
     }
 }
 
+// void Context::MouseMove(double x, double y)
+// {
+//     if (!m_cameraControl)
+//         return;
+//     auto pos = glm::vec2((float)x, (float)y);
+//     auto deltaPos = pos - m_prevMousePos;
+
+//     const float cameraRotSpeed = 0.8f;
+//     m_cameraYaw -= deltaPos.x * cameraRotSpeed;
+//     m_cameraPitch -= deltaPos.y * cameraRotSpeed;
+
+//     if (m_cameraYaw < 0.0f)
+//         m_cameraYaw += 360.0f;
+//     if (m_cameraYaw > 360.0f)
+//         m_cameraYaw -= 360.0f;
+
+//     if (m_cameraPitch > 89.0f)
+//         m_cameraPitch = 89.0f;
+//     if (m_cameraPitch < -89.0f)
+//         m_cameraPitch = -89.0f;
+
+//     m_prevMousePos = pos;
+// }
+
 void Context::ProcessInput(GLFWwindow *window)
 {
-    // if (!m_cameraControl)
-    //     return;
-
     const float cameraSpeed = 0.05f;
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    if ((glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) || (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS))
         m_cameraPos += cameraSpeed * m_cameraFront;
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    if ((glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) || (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS))
         m_cameraPos -= cameraSpeed * m_cameraFront;
 
     auto cameraRight = glm::normalize(glm::cross(m_cameraUp, -m_cameraFront));
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    if ((glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) || (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS))
         m_cameraPos += cameraSpeed * cameraRight;
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+
+    if ((glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) || (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS))
         m_cameraPos -= cameraSpeed * cameraRight;
 
     auto cameraUp = glm::normalize(glm::cross(-m_cameraFront, cameraRight));
@@ -85,46 +83,39 @@ void Context::Reshape(int width, int height)
 
 std::unique_ptr<Parse> Context::Init()
 {
-    // ** PARSING **
+    // ** PARSING ** //
     std::unique_ptr<Parse> parse(new Parse());
 
     std::string objFileName = "./resorces/";
-    objFileName += "42"; // NOTE : insert file name
+    objFileName += "teapot2"; // NOTE : insert file name
     parse->setFileName(objFileName);
     objFileName += ".obj";
 
     auto vertice = parse->Parser(objFileName); // 파싱부분
 
-    // 순서 !!
     // [1] VAO binding :: vertex array obj 생성 & 바인딩
     m_vertexLayout = VertexLayout::Create();
 
     // [2] VBO binding :: 버텍스 버퍼 생성(generate)
-    // TODO : vertice를 내가 구한 값들로 채워 넣어야 함! <- VBO를 만들어야 함!!
     m_vertexBuffer = Buffer::CreateWithData(GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertice.get(),
                                             parse->getFaces().size() * sizeof(float) * 8 * 3);
 
     // [3] Vertex attribute setting
     // vertices의 위치를 각각 어떻게 구성할것인지!
-    // void VertexLayout::SetAttrib(uint32_t attribIndex, 버텍스 속성의 크기, 데이터 타입, 정규화 여부, 연이은 vertex
-    // 속성 세트들 사이의 공백(stride), 버퍼에서 데이터) const
+    // void VertexLayout::SetAttrib(uint32_t attribIndex, 버텍스 속성의 크기, 데이터 타입, 정규화 여부, 연이은
+    // vertex 속성 세트들 사이의 공백(stride), 버퍼에서 데이터) const
     m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, 0);
     m_vertexLayout->SetAttrib(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, sizeof(float) * 3);
     m_vertexLayout->SetAttrib(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, sizeof(float) * 6);
-
-    // m_indexBuffer = Buffer::CreateWithData(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices, sizeof(uint32_t) * 36);
-
 
     m_program = Program::Create("./shader/lighting.vs", "./shader/lighting.fs");
     if (!m_program)
         exit(1);
 
-    glClearColor(0.1f, 0.2f, 0.3f, 0.0f);
+    glClearColor(0.7f, 0.7f, 0.7f, 0.0f); // background color
 
-    // 로딩하는 코드
-
-    m_material.texDiffuse = Texture::CreateFromImage(Image::Load("./image/rabbit.png").get());
-    m_material.texSpecular = Texture::CreateFromImage(Image::Load("./image/container2_specular.png").get());
+    m_material.texDiffuse = Texture::CreateFromImage(Image::Load("./image/green_pattern.jpeg").get());
+    // m_material.texSpecular = Texture::CreateFromImage(Image::Load("./image/container2_specular.png").get());
 
     return (std::move(parse));
 }
@@ -146,13 +137,13 @@ void Context::Render(std::unique_ptr<Parse> &parse)
         {
             m_cameraYaw = 0.0f;
             m_cameraPitch = 0.0f;
-            m_cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+            m_cameraPos = glm::vec3(0.0f, 0.0f, 10.0f);
         }
         if (ImGui::CollapsingHeader("light", ImGuiTreeNodeFlags_DefaultOpen))
         {
             ImGui::DragFloat3("l.position", glm::value_ptr(m_light.position), 0.01f);
             ImGui::DragFloat3("l.direction", glm::value_ptr(m_light.direction), 0.01f);
-            //ImGui::DragFloat2("l.cutoff", glm::value_ptr(m_light.cutoff), 0.5f, 0.0f, 180.0f);
+            // ImGui::DragFloat2("l.cutoff", glm::value_ptr(m_light.cutoff), 0.5f, 0.0f, 180.0f);
             ImGui::DragFloat("l.distance", &m_light.distance, 0.5f, 0.0f, 3000.0f);
             ImGui::ColorEdit3("l.ambient", glm::value_ptr(m_light.ambient));
             ImGui::ColorEdit3("l.diffuse", glm::value_ptr(m_light.diffuse));
@@ -204,17 +195,17 @@ void Context::Render(std::unique_ptr<Parse> &parse)
 
     m_program->SetUniform("material.ambient", m_material.attribute.ambient);
     m_program->SetUniform("material.diffuse", m_material.attribute.diffuse);
-    m_program->SetUniform("material.TexDiffuse", 0);
+    // m_program->SetUniform("material.TexDiffuse", 0);
 
     m_program->SetUniform("material.specular", m_material.attribute.specular);
     m_program->SetUniform("material.shininess", m_material.attribute.shininess);
     m_program->SetUniform("m_texture", m_texture);
 
-    glActiveTexture(GL_TEXTURE0);
+    glActiveTexture(GL_TEXTURE0); // texture를 shader 통해서 active
     m_material.texDiffuse->Bind();
 
-    glActiveTexture(GL_TEXTURE1);
-    m_material.texSpecular->Bind();
+    // glActiveTexture(GL_TEXTURE1);
+    // m_material.texSpecular->Bind();
 
     auto model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -10.0f));
     auto angle = glm::radians((m_animation ? (float)glfwGetTime() : 0.0f) * 120.0f);

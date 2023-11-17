@@ -12,9 +12,7 @@ std::unique_ptr<float[]> Parse::Parser(std::string filename)
         std::cout << "Error! :: " << filename << " can't be opened.";
         exit(1);
     }
-    std::cout << "NOTION : open available.\n";
 
-    std::cout << "NOTION : parse v & f.\n";
     std::string line = "";
     while (std::getline(file, line))
     {
@@ -90,12 +88,12 @@ std::unique_ptr<float[]> Parse::Parser(std::string filename)
     }
 
     file.close();
-
     return (makeVBO());
 }
 
 void Parse::parseMtlFile()
 {
+    // file이름 지정 및 파일 오픈
     std::string mtlFileName = this->filename;
     mtlFileName += ".mtl";
     std::ifstream file(mtlFileName);
@@ -104,6 +102,7 @@ void Parse::parseMtlFile()
         std::cout << "Error! :: " << mtlFileName << " can't be opened.";
         exit(1);
     }
+
     std::string line = "";
     while (std::getline(file, line))
     {
@@ -140,11 +139,9 @@ void Parse::parseMtlFile()
 
 void Parse::makeTexture()
 {
-    float zMax = 0.0f;
-    float zMin = 0.0f;
-
     glm::vec2 max = glm::vec2();
     glm::vec2 min = glm::vec2();
+
     // y 축 하나 없애기 -> x의 Min, max, z의 min, max 구하기 (vertex 돌면서)
     for (glm::vec3 vec : vertexPosition)
     {
@@ -153,16 +150,14 @@ void Parse::makeTexture()
 
         min[0] = min[0] < vec[0] ? min[0] : vec[0]; // x축 min
         min[1] = min[1] < vec[1] ? min[1] : vec[1]; // y축 min
-
-        zMax = zMax > vec[2] ? zMax : vec[2];
-        zMin = zMin < vec[2] ? zMin : vec[2];
     }
 
     float xLength = max[0] - min[0];
     float yLength = max[1] - min[1];
     float xMin = min[0];
     float yMin = min[1];
-    std::cout << "(xLength :: " << xLength << ", yLength :: " << yLength << ", zLength :: " << zMax - zMin << ", xMin :: " << xMin << ", yMin :: " << yMin
+
+    std::cout << "(xLength :: " << xLength << ", yLength :: " << yLength << ", xMin :: " << xMin << ", yMin :: " << yMin
               << ") " << std::endl;
 
     // 나온 값을 정규화(클리핑) 공식에 대입하기 (min-max scaler)
@@ -171,20 +166,13 @@ void Parse::makeTexture()
     vertexTexCoord.assign(vertexPosition.size(), glm::vec2());
     for (int vertexIdx = 0; vertexIdx < vertexPosition.size(); vertexIdx++)
     {
-        // std::cout << "XXX POS :: " << vertexIdx << ", pos x :: " << vertexPosition[vertexIdx].x << " , "
-        //           << ", pos z :: " << vertexPosition[vertexIdx].z << std::endl;
-
         vertexTexCoord[vertexIdx].x = (vertexPosition[vertexIdx].x - xMin) / xLength;
         vertexTexCoord[vertexIdx].y = (vertexPosition[vertexIdx].y - yMin) / yLength;
-
-        // std::cout << "XXX TEX :: " << vertexIdx << ", tex x :: " << vertexTexCoord[vertexIdx].x << " , "
-        //           << ", tex y :: " << vertexTexCoord[vertexIdx].y << std::endl;
     }
 }
 
-std::unique_ptr<float[]> Parse::makeVBO()
+void Parse::makeVertexNormal()
 {
-    // vertexNormal.resize(faces.size());
     vertexNormal.clear();
     vertexNormal.assign(vertexPosition.size(), glm::vec3());
 
@@ -196,27 +184,55 @@ std::unique_ptr<float[]> Parse::makeVBO()
     {
         vn = glm::normalize(vn);
     }
-    makeTexture();
+}
+
+std::unique_ptr<float[]> Parse::makeVBO()
+{
+    // 만약 vertexNormal 이 존재하지 않으면, 만들어줌.
+    if (!vertexNormal.size())
+    {
+        makeVertexNormal();
+    }
+
+    makeTexture(); // 텍스쳐 클리핑해서 넣기
 
     // vbo array 만들기
     size_t size = faces.size();
     auto VBO = std::unique_ptr<float[]>(new float[size * 8 * 3]);
-    
-    for (int LineIdx = 0; LineIdx < size; LineIdx++)
+
+    // FIXME
+    std::string line;
+    std::ofstream file("output.txt");
+
+    if (file.is_open())
     {
-        for (int idx = 0; idx < 3; idx++)
+        for (int LineIdx = 0; LineIdx < size; LineIdx++)
         {
-            uint32_t vertexIdx = faces[LineIdx][idx];
-            VBO[(LineIdx * 8 * 3) + (idx * 8)] = vertexPosition[vertexIdx - 1].x;
-            VBO[(LineIdx * 8 * 3) + (idx * 8) + 1] = vertexPosition[vertexIdx - 1].y;
-            VBO[(LineIdx * 8 * 3) + (idx * 8) + 2] = vertexPosition[vertexIdx - 1].z;
+            for (int idx = 0; idx < 3; idx++)
+            {
+                std::size_t vertexIdx = faces[LineIdx][idx];
+                VBO[(LineIdx * 8 * 3) + (idx * 8)] = vertexPosition[vertexIdx - 1].x;
+                VBO[(LineIdx * 8 * 3) + (idx * 8) + 1] = vertexPosition[vertexIdx - 1].y;
+                VBO[(LineIdx * 8 * 3) + (idx * 8) + 2] = vertexPosition[vertexIdx - 1].z;
 
-            VBO[(LineIdx * 8 * 3) + (idx * 8) + 3] = vertexNormal[vertexIdx - 1].x;
-            VBO[(LineIdx * 8 * 3) + (idx * 8) + 4] = vertexNormal[vertexIdx - 1].y;
-            VBO[(LineIdx * 8 * 3) + (idx * 8) + 5] = vertexNormal[vertexIdx - 1].z;
+                VBO[(LineIdx * 8 * 3) + (idx * 8) + 3] = vertexNormal[vertexIdx - 1].x;
+                VBO[(LineIdx * 8 * 3) + (idx * 8) + 4] = vertexNormal[vertexIdx - 1].y;
+                VBO[(LineIdx * 8 * 3) + (idx * 8) + 5] = vertexNormal[vertexIdx - 1].z;
 
-            VBO[(LineIdx * 8 * 3) + (idx * 8) + 6] = vertexTexCoord[vertexIdx - 1].x;
-            VBO[(LineIdx * 8 * 3) + (idx * 8) + 7] = vertexTexCoord[vertexIdx - 1].y;
+                VBO[(LineIdx * 8 * 3) + (idx * 8) + 6] = vertexTexCoord[vertexIdx - 1].x;
+                VBO[(LineIdx * 8 * 3) + (idx * 8) + 7] = vertexTexCoord[vertexIdx - 1].y;
+
+                file << VBO[(LineIdx * 8 * 3) + (idx * 8)] << "\n";
+                file << VBO[(LineIdx * 8 * 3) + (idx * 8) + 1] << "\n";
+                file << VBO[(LineIdx * 8 * 3) + (idx * 8) + 2] << "\n\n";
+
+                // file << VBO[(LineIdx * 8 * 3) + (idx * 8) + 3] << "\n";
+                // file << VBO[(LineIdx * 8 * 3) + (idx * 8) + 4] << "\n";
+                // file << VBO[(LineIdx * 8 * 3) + (idx * 8) + 5] << "\n\n";
+
+                // file << VBO[(LineIdx * 8 * 3) + (idx * 8) + 6] << "\n";
+                // file << VBO[(LineIdx * 8 * 3) + (idx * 8) + 7] << "\n\n";
+            }
         }
     }
 
@@ -235,53 +251,11 @@ void Parse::normalizing(glm::vec3 facesLine) // v 5 7 1
     glm::vec3 vec2 = {v3[0] - v1[0], v3[1] - v1[1], v3[2] - v1[2]};
 
     glm::vec3 normal = glm::normalize(glm::cross(vec1, vec2));
-    std::cout << "normal : " << glm::to_string(normal) << std::endl;
+    // std::cout << "normal : " << glm::to_string(normal) << std::endl;
 
     vertexNormal[facesLine[0] - 1] += normal;
     vertexNormal[facesLine[1] - 1] += normal;
     vertexNormal[facesLine[2] - 1] += normal;
-}
-
-void Parse::printVertexInfo()
-{
-    // std::cout << "*** VERTICES **** :: \n";
-    // std::vector<float>::iterator iter;
-    // std::cout << "1) vertex Position : ";
-    // for (iter = vertexPosition.begin(); iter != vertexPosition.end(); ++iter)
-    // {
-    //     std::cout << *iter << " ";
-    // }
-    // std::cout << "\n2) vertex Normal : ";
-    // std::vector<float>::iterator iter2;
-    // for (iter2 = vertexNormal.begin(); iter2 != vertexNormal.end(); ++iter2)
-    // {
-    //     std::cout << *iter2 << " ";
-    // }
-    // std::cout << "\n3) vertex Texture coord : ";
-    // std::vector<float>::iterator iter3;
-    // for (iter3 = vertexTexCoord.begin(); iter3 != vertexTexCoord.end(); ++iter3)
-    // {
-    //     std::cout << *iter3 << " ";
-    // }
-    // std::cout << "\n4) vertex idx : ";
-    // std::vector<float>::iterator iter7;
-    // for (iter7 = attribute.begin(); iter7 != attribute.end(); ++iter7)
-    // {
-    //     std::cout << *iter7 << " ";
-    // }
-
-    // std::cout << "\n8) diffuse idx : ";
-    // std::vector<float>::iterator iter8;
-    // for (iter8 = diffuse.begin(); iter8 != diffuse.end(); ++iter8)
-    // {
-    //     std::cout << *iter8 << " ";
-    // }
-    // std::cout << "\n9) specular idx : ";
-    // std::vector<float>::iterator iter9;
-    // for (iter9 = specular.begin(); iter9 != specular.end(); ++iter9)
-    // {
-    //     std::cout << *iter9 << " ";
-    // }
 }
 
 void Parse::setFileName(std::string name)

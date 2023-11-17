@@ -25,11 +25,9 @@ class Parse
     std::unique_ptr<float[]> makeVBO();
     void parseMtlFile();
     void makeTexture();
+    void makeVertexNormal();
     void setFileName(std::string name);
     void normalizing(glm::vec3 facesLine);
-
-    // for debug
-    void printVertexInfo();
 
     // getter
     std::string getFileName();
@@ -56,7 +54,6 @@ class Parse
 
     // FACE data
     std::vector<glm::vec3> faces;
-    
 
     // === NORMALIZING =============================
 

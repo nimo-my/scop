@@ -34,7 +34,7 @@ void main() {
 
   vec3 lightDir = normalize(light.position - position);
   vec3 pixelNorm = normalize(normal);
-  float diff = abs(dot(pixelNorm, lightDir));
+  float diff = dot(pixelNorm, lightDir);
   vec3 diffuse = diff * texColor * light.diffuse;
 
   // vec3 specColor = texture(material.specular, texCoord).xyz;
