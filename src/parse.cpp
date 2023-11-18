@@ -78,7 +78,7 @@ std::unique_ptr<float[]> Parse::Parser(std::string filename)
     return (makeVBO());
 }
 
-std::vector<size_t> Parse::searchAndSplitSlash(std::string chunk)
+std::vector<size_t> Parse::splitSlash(std::string chunk)
 {
     std::vector<size_t> buffer;
     buffer.clear();
@@ -118,9 +118,9 @@ void Parse::removeSlash(std::string &s1, std::string &s2, std::string &s3, std::
 
     for (int i = 1; i <= 4; i++)
     {
-        if (isSlash(loop[i]))
+        if (isSlash(loop[i])) // '/' 가 string 안에 있는 지 확인
         {
-            bufferSplited = searchAndSplitSlash(loop[i]);
+            bufferSplited = splitSlash(loop[i]);
             if (bufferSplited.size())
                 loop[i] = bufferSplited[0];
         }
@@ -147,7 +147,7 @@ void Parse::parseMtlFile()
 
         if (typePrefix == "Ka") // vertex positions
         {
-            float vert1, vert2, vert3;
+            float vert1 = 0.0f, vert2 = 0.0f, vert3 = 0.0f;
             ss >> vert1 >> vert2 >> vert3;
             attribute[0] = vert1;
             attribute[1] = vert2;
@@ -155,7 +155,7 @@ void Parse::parseMtlFile()
         }
         else if (typePrefix == "Kd") // vertex face information
         {
-            float vert1, vert2, vert3;
+            float vert1 = 0.0f, vert2 = 0.0f, vert3 = 0.0f;
             ss >> vert1 >> vert2 >> vert3;
             diffuse[0] = vert1;
             diffuse[1] = vert2;
@@ -163,7 +163,7 @@ void Parse::parseMtlFile()
         }
         else if (typePrefix == "Ks")
         {
-            float vert1, vert2, vert3;
+            float vert1 = 0.0f, vert2 = 0.0f, vert3 = 0.0f;
             ss >> vert1 >> vert2 >> vert3;
             specular[0] = vert1;
             specular[1] = vert2;
@@ -192,9 +192,6 @@ void Parse::makeTexture()
     float yLength = max[1] - min[1];
     float xMin = min[0];
     float yMin = min[1];
-
-    std::cout << "(xLength :: " << xLength << ", yLength :: " << yLength << ", xMin :: " << xMin << ", yMin :: " << yMin
-              << ") " << std::endl;
 
     // 나온 값을 정규화(클리핑) 공식에 대입하기 (min-max scaler)
     // 나온 값을 vertexTexture 에 넣기
@@ -269,19 +266,8 @@ void Parse::normalizing(glm::vec3 facesLine) // v 5 7 1
     glm::vec3 vec2 = {v3[0] - v1[0], v3[1] - v1[1], v3[2] - v1[2]};
 
     glm::vec3 normal = glm::normalize(glm::cross(vec1, vec2));
-    // std::cout << "normal : " << glm::to_string(normal) << std::endl;
 
     vertexNormal[facesLine[0] - 1] += normal;
     vertexNormal[facesLine[1] - 1] += normal;
     vertexNormal[facesLine[2] - 1] += normal;
-}
-
-void Parse::setFileName(std::string name)
-{
-    this->filename = name;
-}
-
-std::string Parse::getFileName()
-{
-    return (this->filename);
 }

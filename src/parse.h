@@ -26,14 +26,20 @@ class Parse
     void parseMtlFile();
     void makeTexture();
     void makeVertexNormal();
-    std::vector<size_t> searchAndSplitSlash(std::string chunk);
+    std::vector<size_t> splitSlash(std::string chunk);
     bool isSlash(std::string str);
     void removeSlash(std::string &s1, std::string &s2, std::string &s3, std::string &s4);
-    void setFileName(std::string name);
     void normalizing(glm::vec3 facesLine);
+    void setFileName(std::string name)
+    {
+        this->filename = name;
+    }
 
     // getter
-    std::string getFileName();
+    std::string getFileName()
+    {
+        return (this->filename);
+    }
     std::vector<glm::vec3> getFaces()
     {
         return faces;
@@ -47,7 +53,6 @@ class Parse
     std::string mtlInfo;
     std::string filename;
 
-    // === PARSING =============================
     std::string typePrefix;
 
     // VERTEX data
@@ -58,14 +63,11 @@ class Parse
     // FACE data
     std::vector<glm::vec3> faces;
 
-    // === NORMALIZING =============================
-
     // mtl file
     glm::vec3 attribute;
     glm::vec3 diffuse;
     glm::vec3 specular;
 
-    // === GLM =============================
 };
 
 #endif // __PARSE_H__

@@ -1,4 +1,4 @@
-# CMake 최소 버전 명시.
+# CMake 최소 버전 명시
 cmake_minimum_required(VERSION 3.26.4)
 
 # 프로젝트 이름 및 버전 명시
@@ -12,7 +12,7 @@ set(WINDOW_NAME "scop")
 set(WINDOW_WIDTH 960)
 set(WINDOW_HEIGHT 640)
 
-# Mac에서 돌릴때 필요한 추가적인 Flag들.
+# Mac에서 돌릴때 필요한 추가적인 Flag들
 if (APPLE)
     set(CMAKE_CXX_FLAGS "-framework Cocoa -framework IOKit -framework OpenGL")
 endif()
@@ -25,7 +25,7 @@ project(${PROJECT_NAME})
 # 실행파일의 이름 설정
 add_executable(${PROJECT_NAME} 
     src/main.cpp
-    src/common.cpp src/common.h
+    src/common.h
     src/shader.cpp src/shader.h
     src/program.cpp src/program.h
     src/context.cpp src/context.h

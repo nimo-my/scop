@@ -2,19 +2,28 @@
 #define __SHADER_H__
 
 #include "common.h"
+#include <fstream>
+#include <iostream>
+#include <sstream>
 
 CLASS_PTR(Shader);
 class Shader
 {
-public:
-    static ShaderUPtr CreateFromFile(const std::string& filename, GLenum shaderType);
+  public:
+    static ShaderUPtr CreateFromFile(const std::string &filename, GLenum shaderType);
+    std::optional<std::string> LoadTextFile(const std::string &filename);
     ~Shader();
-    uint32_t Get() const {return m_shader;}
+    uint32_t Get() const
+    {
+        return m_shader;
+    }
 
-private:
-    Shader(){}
-    bool LoadFile(const std::string& filename, GLenum shaderType);
-    uint32_t m_shader {0};
+  private:
+    Shader()
+    {
+    }
+    bool LoadFile(const std::string &filename, GLenum shaderType);
+    uint32_t m_shader{0};
 };
 
 #endif // __SHADER_H__
