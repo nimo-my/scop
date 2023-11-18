@@ -26,6 +26,9 @@ class Parse
     void parseMtlFile();
     void makeTexture();
     void makeVertexNormal();
+    std::vector<size_t> searchAndSplitSlash(std::string chunk);
+    bool isSlash(std::string str);
+    void removeSlash(std::string &s1, std::string &s2, std::string &s3, std::string &s4);
     void setFileName(std::string name);
     void normalizing(glm::vec3 facesLine);
 

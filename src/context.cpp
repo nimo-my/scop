@@ -28,30 +28,6 @@ void Context::MouseButton(int button, int action, double x, double y)
     }
 }
 
-// void Context::MouseMove(double x, double y)
-// {
-//     if (!m_cameraControl)
-//         return;
-//     auto pos = glm::vec2((float)x, (float)y);
-//     auto deltaPos = pos - m_prevMousePos;
-
-//     const float cameraRotSpeed = 0.8f;
-//     m_cameraYaw -= deltaPos.x * cameraRotSpeed;
-//     m_cameraPitch -= deltaPos.y * cameraRotSpeed;
-
-//     if (m_cameraYaw < 0.0f)
-//         m_cameraYaw += 360.0f;
-//     if (m_cameraYaw > 360.0f)
-//         m_cameraYaw -= 360.0f;
-
-//     if (m_cameraPitch > 89.0f)
-//         m_cameraPitch = 89.0f;
-//     if (m_cameraPitch < -89.0f)
-//         m_cameraPitch = -89.0f;
-
-//     m_prevMousePos = pos;
-// }
-
 void Context::ProcessInput(GLFWwindow *window)
 {
     const float cameraSpeed = 0.05f;
@@ -87,7 +63,7 @@ std::unique_ptr<Parse> Context::Init()
     std::unique_ptr<Parse> parse(new Parse());
 
     std::string objFileName = "./resorces/";
-    objFileName += "teapot2"; // NOTE : insert file name
+    objFileName += "w_box"; // NOTE : insert file name
     parse->setFileName(objFileName);
     objFileName += ".obj";
 
@@ -114,8 +90,7 @@ std::unique_ptr<Parse> Context::Init()
 
     glClearColor(0.7f, 0.7f, 0.7f, 0.0f); // background color
 
-    m_material.texDiffuse = Texture::CreateFromImage(Image::Load("./image/green_pattern.jpeg").get());
-    // m_material.texSpecular = Texture::CreateFromImage(Image::Load("./image/container2_specular.png").get());
+    m_material.texDiffuse = Texture::CreateFromImage(Image::Load("./image/green_pattern.jpeg").get()); // texture
 
     return (std::move(parse));
 }
@@ -143,7 +118,6 @@ void Context::Render(std::unique_ptr<Parse> &parse)
         {
             ImGui::DragFloat3("l.position", glm::value_ptr(m_light.position), 0.01f);
             ImGui::DragFloat3("l.direction", glm::value_ptr(m_light.direction), 0.01f);
-            // ImGui::DragFloat2("l.cutoff", glm::value_ptr(m_light.cutoff), 0.5f, 0.0f, 180.0f);
             ImGui::DragFloat("l.distance", &m_light.distance, 0.5f, 0.0f, 3000.0f);
             ImGui::ColorEdit3("l.ambient", glm::value_ptr(m_light.ambient));
             ImGui::ColorEdit3("l.diffuse", glm::value_ptr(m_light.diffuse));
@@ -175,37 +149,22 @@ void Context::Render(std::unique_ptr<Parse> &parse)
 
     auto view = glm::lookAt(m_cameraPos, m_cameraPos + m_cameraFront, m_cameraUp);
 
-    // auto lightModelTransform =
-    //     glm::translate(glm::mat4(1.0), m_light.position) * glm::scale(glm::mat4(1.0), glm::vec3(0.1f));
-    // m_program->Use();
-    // m_simpleProgram->Use();
-    // m_simpleProgram->SetUniform("color", glm::vec4(m_light.ambient + m_light.diffuse, 1.0f));
-    // m_simpleProgram->SetUniform("transform", projection * view * lightModelTransform);
-    // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-
     m_program->Use();
     m_program->SetUniform("viewPos", m_cameraPos);
     m_program->SetUniform("light.position", m_light.position);
-    // m_program->SetUniform("light.attenuation", GetAttenuationCoeff(m_light.distance));
     m_program->SetUniform("light.direction", m_light.direction);
-    // m_program->SetUniform("light.cutoff", cosf(glm::radians(m_light.cutoff)));
     m_program->SetUniform("light.ambient", m_light.ambient);
     m_program->SetUniform("light.diffuse", m_light.diffuse);
     m_program->SetUniform("light.specular", m_light.specular);
 
     m_program->SetUniform("material.ambient", m_material.attribute.ambient);
     m_program->SetUniform("material.diffuse", m_material.attribute.diffuse);
-    // m_program->SetUniform("material.TexDiffuse", 0);
-
     m_program->SetUniform("material.specular", m_material.attribute.specular);
     m_program->SetUniform("material.shininess", m_material.attribute.shininess);
     m_program->SetUniform("m_texture", m_texture);
 
     glActiveTexture(GL_TEXTURE0); // texture를 shader 통해서 active
     m_material.texDiffuse->Bind();
-
-    // glActiveTexture(GL_TEXTURE1);
-    // m_material.texSpecular->Bind();
 
     auto model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -10.0f));
     auto angle = glm::radians((m_animation ? (float)glfwGetTime() : 0.0f) * 120.0f);

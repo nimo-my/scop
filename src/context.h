@@ -31,7 +31,6 @@ class Context
     static ContextUPtr Create();
     std::unique_ptr<Parse> Init();
     void MouseButton(int button, int action, double x, double y);
-    void MouseMove(double x, double y);
     void ProcessInput(GLFWwindow *window);
     void Reshape(int width, int height);
 
@@ -47,8 +46,6 @@ class Context
     VertexLayoutUPtr m_vertexLayout;
     BufferUPtr m_vertexBuffer;
     BufferUPtr m_indexBuffer;
-    // TextureUPtr m_texture;
-    // TextureUPtr m_texture2;
 
     // animation
     bool m_animation{false};
@@ -84,10 +81,10 @@ class Context
     struct Light
     {
         glm::vec3 position{glm::vec3(2.0f, 2.0f, 2.0f)};
-        glm::vec3 direction{glm::vec3(-1.0f, -1.0f, -1.0f)};
+        glm::vec3 direction{glm::vec3(1.0f, 1.0f, 1.0f)};
         float cutoff{20.0f};   // 60도로 되어있는 각도 중 20도
         float distance{32.0f}; // 기본 거리
-        glm::vec3 ambient{glm::vec3(0.1f, 0.1f, 0.1f)};
+        glm::vec3 ambient{glm::vec3(0.5f, 0.5f, 0.5f)};
         glm::vec3 diffuse{glm::vec3(0.5f, 0.5f, 0.5f)};
         glm::vec3 specular{glm::vec3(1.0f, 1.0f, 1.0f)};
     };

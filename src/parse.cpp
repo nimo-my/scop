@@ -53,42 +53,78 @@ std::unique_ptr<float[]> Parse::Parser(std::string filename)
         }
         else if (typePrefix == "f") // vertex face information
         {
-            std::size_t vertexIdx1 = 0, vertexIdx2 = 0, vertexIdx3 = 0, vertexIdx4 = 0;
+            std::string vertexIdx1 = "", vertexIdx2 = "", vertexIdx3 = "", vertexIdx4 = "";
             ss >> vertexIdx1 >> vertexIdx2 >> vertexIdx3 >> vertexIdx4;
 
-            if (!ss >> vertexIdx4)
+            removeSlash(vertexIdx1, vertexIdx2, vertexIdx3, vertexIdx4);
+
+            // faces가 3개인 경우와 4개인 경우 분기점
+            if (vertexIdx4 == "")
             {
-                this->faces.push_back(glm::vec3{vertexIdx1, vertexIdx2, vertexIdx3});
+                this->faces.push_back(glm::vec3{stoi(vertexIdx1), stoi(vertexIdx2), stoi(vertexIdx3)});
             }
             else
             {
-                this->faces.push_back(glm::vec3{vertexIdx1, vertexIdx2, vertexIdx3});
-                this->faces.push_back(glm::vec3{vertexIdx1, vertexIdx3, vertexIdx4});
+                this->faces.push_back(glm::vec3{stoi(vertexIdx1), stoi(vertexIdx2), stoi(vertexIdx3)});
+                this->faces.push_back(glm::vec3{stoi(vertexIdx1), stoi(vertexIdx3), stoi(vertexIdx4)});
             }
-
-            // if (vertexIdxInfoStream.peek() == '/') // .peek() : 스트림에서 빼오지는 않고 읽기만 한다
-            // {
-            //     vertexIdxInfoStream.ignore();
-            //     if (vertexIdxInfoStream.peek() != '/') // Vertex Normal
-            //     {
-            //         vertexIdxInfoStream >> textureIdx;
-            //         vertexBuffer.push_back(textureIdx - 1);
-            //     }
-            //     if (vertexIdxInfoStream.peek() == '/') // Vertex Texture
-            //     {
-            //         vertexIdxInfoStream.ignore();
-            //         vertexIdxInfoStream >> normalIdx;
-            //         vertexBuffer.push_back(normalIdx - 1);
-            //     }
-            // }
         }
         else if (typePrefix == "mtllib")
             parseMtlFile();
-        typePrefix = ""; // typePrefix 초기화
+        typePrefix.clear();
     }
 
     file.close();
     return (makeVBO());
+}
+
+std::vector<size_t> Parse::searchAndSplitSlash(std::string chunk)
+{
+    std::vector<size_t> buffer;
+    buffer.clear();
+
+    std::string index = "";
+    for (size_t i = 0; i < chunk.length(); i++)
+    {
+        if (chunk[i] == '/')
+        {
+            buffer.push_back(stoi(index));
+            index.clear();
+            i++;
+        }
+        else
+            index += chunk[i];
+    }
+
+    return (buffer);
+}
+
+bool Parse::isSlash(std::string str)
+{
+    for (int i = 0; i < str.size(); i++)
+    {
+        if (str[i] == '/')
+            return true;
+        else
+            return false;
+    }
+}
+
+void Parse::removeSlash(std::string &s1, std::string &s2, std::string &s3, std::string &s4)
+{
+    std::vector<size_t> bufferSplited;
+
+    std::vector<std::string> loop = {s1, s2, s3, s4};
+
+    for (int i = 1; i <= 4; i++)
+    {
+        if (isSlash(loop[i]))
+        {
+            bufferSplited = searchAndSplitSlash(loop[i]);
+            if (bufferSplited.size())
+                loop[i] = bufferSplited[0];
+        }
+    }
 }
 
 void Parse::parseMtlFile()
@@ -200,39 +236,21 @@ std::unique_ptr<float[]> Parse::makeVBO()
     size_t size = faces.size();
     auto VBO = std::unique_ptr<float[]>(new float[size * 8 * 3]);
 
-    // FIXME
-    std::string line;
-    std::ofstream file("output.txt");
-
-    if (file.is_open())
+    for (int LineIdx = 0; LineIdx < size; LineIdx++)
     {
-        for (int LineIdx = 0; LineIdx < size; LineIdx++)
+        for (int idx = 0; idx < 3; idx++)
         {
-            for (int idx = 0; idx < 3; idx++)
-            {
-                std::size_t vertexIdx = faces[LineIdx][idx];
-                VBO[(LineIdx * 8 * 3) + (idx * 8)] = vertexPosition[vertexIdx - 1].x;
-                VBO[(LineIdx * 8 * 3) + (idx * 8) + 1] = vertexPosition[vertexIdx - 1].y;
-                VBO[(LineIdx * 8 * 3) + (idx * 8) + 2] = vertexPosition[vertexIdx - 1].z;
+            std::size_t vertexIdx = faces[LineIdx][idx];
+            VBO[(LineIdx * 8 * 3) + (idx * 8)] = vertexPosition[vertexIdx - 1].x;
+            VBO[(LineIdx * 8 * 3) + (idx * 8) + 1] = vertexPosition[vertexIdx - 1].y;
+            VBO[(LineIdx * 8 * 3) + (idx * 8) + 2] = vertexPosition[vertexIdx - 1].z;
 
-                VBO[(LineIdx * 8 * 3) + (idx * 8) + 3] = vertexNormal[vertexIdx - 1].x;
-                VBO[(LineIdx * 8 * 3) + (idx * 8) + 4] = vertexNormal[vertexIdx - 1].y;
-                VBO[(LineIdx * 8 * 3) + (idx * 8) + 5] = vertexNormal[vertexIdx - 1].z;
+            VBO[(LineIdx * 8 * 3) + (idx * 8) + 3] = vertexNormal[vertexIdx - 1].x;
+            VBO[(LineIdx * 8 * 3) + (idx * 8) + 4] = vertexNormal[vertexIdx - 1].y;
+            VBO[(LineIdx * 8 * 3) + (idx * 8) + 5] = vertexNormal[vertexIdx - 1].z;
 
-                VBO[(LineIdx * 8 * 3) + (idx * 8) + 6] = vertexTexCoord[vertexIdx - 1].x;
-                VBO[(LineIdx * 8 * 3) + (idx * 8) + 7] = vertexTexCoord[vertexIdx - 1].y;
-
-                file << VBO[(LineIdx * 8 * 3) + (idx * 8)] << "\n";
-                file << VBO[(LineIdx * 8 * 3) + (idx * 8) + 1] << "\n";
-                file << VBO[(LineIdx * 8 * 3) + (idx * 8) + 2] << "\n\n";
-
-                // file << VBO[(LineIdx * 8 * 3) + (idx * 8) + 3] << "\n";
-                // file << VBO[(LineIdx * 8 * 3) + (idx * 8) + 4] << "\n";
-                // file << VBO[(LineIdx * 8 * 3) + (idx * 8) + 5] << "\n\n";
-
-                // file << VBO[(LineIdx * 8 * 3) + (idx * 8) + 6] << "\n";
-                // file << VBO[(LineIdx * 8 * 3) + (idx * 8) + 7] << "\n\n";
-            }
+            VBO[(LineIdx * 8 * 3) + (idx * 8) + 6] = vertexTexCoord[vertexIdx - 1].x;
+            VBO[(LineIdx * 8 * 3) + (idx * 8) + 7] = vertexTexCoord[vertexIdx - 1].y;
         }
     }
 

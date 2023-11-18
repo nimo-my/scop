@@ -37,7 +37,6 @@ void main() {
   float diff = dot(pixelNorm, lightDir);
   vec3 diffuse = diff * texColor * light.diffuse;
 
-  // vec3 specColor = texture(material.specular, texCoord).xyz;
   vec3 viewDir = normalize(viewPos - position);
   vec3 reflectDir = reflect(-lightDir, pixelNorm);
   float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
@@ -46,56 +45,3 @@ void main() {
   vec3 result = ambient + diffuse + specular;
   fragColor = vec4(result, 1.0);
 }
- 
-// struct Light
-// {
-//     vec3 position;
-//     vec3 direction;
-//     float cutoff;
-//     vec3 attenuation;
-//     vec3 ambient;
-//     vec3 diffuse;
-//     vec3 specular;
-// };
-// uniform Light light;
- 
-// struct Material
-// {
-//     sampler2D diffuse;
-//     sampler2D specular;
-//     float shininess;
-// };
-// uniform Material material;
- 
-// void main() 
-// {
-//     vec3 texColor = texture(material.diffuse, texCoord).xyz;
-//   	vec3 ambient = texColor * light.ambient;
- 
-//     float dist = length(light.position - position);
-//     vec3 distPoly = vec3(1.0, dist, dist*dist);
-
-//     float attenuation = 1.0 / dot(distPoly, light.attenuation); // 내적
-//     vec3 lightDir = (light.position - position) / dist;
-    
-//     vec3 result = ambient;
-//     float theta = dot(lightDir, normalize(-light.direction));
-
-//     if (theta > light.cutoff)
-//     {
-//         vec3 pixelNorm = normalize(normal);
-//         float diff = max(dot(pixelNorm, lightDir), 0.0);
-//         vec3 diffuse = diff * texColor * light.diffuse;
-
-//         vec3 specColor = texture(material.specular, texCoord).xyz;
-//         vec3 viewDir = normalize(viewPos - position);
-//         vec3 reflectDir = reflect(-lightDir, pixelNorm);
-//         float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-//         vec3 specular = spec * specColor * light.specular;
-
-//         result += diffuse + specular;
-//     }
-
-//     result *= attenuation;
-//     fragColor = vec4(result, 1.0);
-// }
