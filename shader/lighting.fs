@@ -1,5 +1,4 @@
 #version 330 core
-
 in vec3 normal;
 in vec2 texCoord;
 in vec3 position;
@@ -11,8 +10,6 @@ uniform bool m_texture;
 struct Light { // point light
     vec3 position;
     vec3 direction;
-    vec2 cutoff;
-    vec3 attenuation;
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
@@ -34,7 +31,7 @@ void main() {
 
   vec3 lightDir = normalize(light.position - position);
   vec3 pixelNorm = normalize(normal);
-  float diff = dot(pixelNorm, lightDir);
+  float diff = max(dot(pixelNorm, lightDir), 0.0);
   vec3 diffuse = diff * texColor * light.diffuse;
 
   vec3 viewDir = normalize(viewPos - position);
@@ -45,3 +42,4 @@ void main() {
   vec3 result = ambient + diffuse + specular;
   fragColor = vec4(result, 1.0);
 }
+

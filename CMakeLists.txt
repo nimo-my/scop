@@ -34,6 +34,15 @@ add_executable(${PROJECT_NAME}
     src/image.cpp src/image.h
     src/texture.cpp src/texture.h
     src/parse.cpp src/parse.h
+
+    src/mathlib/Common.cpp src/mathlib/Common.h
+    src/mathlib/Mat2x2.cpp src/mathlib/Mat2x2.h
+    src/mathlib/Mat3x3.cpp src/mathlib/Mat3x3.h
+    src/mathlib/Mat4x4.cpp src/mathlib/Mat4x4.h
+    src/mathlib/Value_ptr.cpp src/mathlib/Value_ptr.h
+    src/mathlib/Vector2.cpp src/mathlib/Vector2.h
+    src/mathlib/Vector3.cpp src/mathlib/Vector3.h
+    src/mathlib/Vector4.cpp src/mathlib/Vector4.h
 )
 
 # ExternalProject 관련 명령어 셋 추가

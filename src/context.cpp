@@ -18,7 +18,7 @@ void Context::MouseButton(int button, int action, double x, double y)
         if (action == GLFW_PRESS)
         {
             // 마우스 조작 시작 시점에 현재 마우스 커서 위치 저장
-            m_prevMousePos = glm::vec2((float)x, (float)y);
+            m_prevMousePos = ft::vec2((float)x, (float)y);
             m_cameraControl = true;
         }
         else if (action == GLFW_RELEASE)
@@ -36,14 +36,14 @@ void Context::ProcessInput(GLFWwindow *window)
     if ((glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) || (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS))
         m_cameraPos -= cameraSpeed * m_cameraFront;
 
-    auto cameraRight = glm::normalize(glm::cross(m_cameraUp, -m_cameraFront));
+    auto cameraRight = ft::normalize(ft::cross(m_cameraUp, -m_cameraFront));
     if ((glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) || (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS))
         m_cameraPos += cameraSpeed * cameraRight;
 
     if ((glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) || (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS))
         m_cameraPos -= cameraSpeed * cameraRight;
 
-    auto cameraUp = glm::normalize(glm::cross(-m_cameraFront, cameraRight));
+    auto cameraUp = ft::normalize(ft::cross(-m_cameraFront, cameraRight));
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
         m_cameraPos += cameraSpeed * cameraUp;
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
@@ -63,7 +63,7 @@ std::unique_ptr<Parse> Context::Init()
     std::unique_ptr<Parse> parse(new Parse());
 
     std::string objFileName = "./resorces/";
-    objFileName += "w_box"; // NOTE : insert file name
+    objFileName += "teapot"; // NOTE : insert file name
     parse->setFileName(objFileName);
     objFileName += ".obj";
 
@@ -99,12 +99,12 @@ void Context::Render(std::unique_ptr<Parse> &parse)
 {
     if (ImGui::Begin("ui window"))
     {
-        if (ImGui::ColorEdit4("clear color", glm::value_ptr(m_clearColor)))
+        if (ImGui::ColorEdit4("clear color", ft::value_ptr(m_clearColor)))
         {
             glClearColor(m_clearColor.x, m_clearColor.y, m_clearColor.z, m_clearColor.w);
         }
         ImGui::Separator();
-        ImGui::DragFloat3("camera pos", glm::value_ptr(m_cameraPos), 0.01f);
+        ImGui::DragFloat3("camera pos", ft::value_ptr(m_cameraPos), 0.01f);
         ImGui::DragFloat("camera yaw", &m_cameraYaw, 0.5f);
         ImGui::DragFloat("camera pitch", &m_cameraPitch, 0.5f, -89.0f, 89.0f);
         ImGui::Separator();
@@ -112,23 +112,23 @@ void Context::Render(std::unique_ptr<Parse> &parse)
         {
             m_cameraYaw = 0.0f;
             m_cameraPitch = 0.0f;
-            m_cameraPos = glm::vec3(0.0f, 0.0f, 10.0f);
+            m_cameraPos = ft::vec3(0.0f, 0.0f, 10.0f);
         }
         if (ImGui::CollapsingHeader("light", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            ImGui::DragFloat3("l.position", glm::value_ptr(m_light.position), 0.01f);
-            ImGui::DragFloat3("l.direction", glm::value_ptr(m_light.direction), 0.01f);
+            ImGui::DragFloat3("l.position", ft::value_ptr(m_light.position), 0.01f);
+            ImGui::DragFloat3("l.direction", ft::value_ptr(m_light.direction), 0.01f);
             ImGui::DragFloat("l.distance", &m_light.distance, 0.5f, 0.0f, 3000.0f);
-            ImGui::ColorEdit3("l.ambient", glm::value_ptr(m_light.ambient));
-            ImGui::ColorEdit3("l.diffuse", glm::value_ptr(m_light.diffuse));
-            ImGui::ColorEdit3("l.specular", glm::value_ptr(m_light.specular));
+            ImGui::ColorEdit3("l.ambient", ft::value_ptr(m_light.ambient));
+            ImGui::ColorEdit3("l.diffuse", ft::value_ptr(m_light.diffuse));
+            ImGui::ColorEdit3("l.specular", ft::value_ptr(m_light.specular));
         }
 
         if (ImGui::CollapsingHeader("material", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            ImGui::ColorEdit3("m.ambient", glm::value_ptr(m_material.attribute.ambient));
-            ImGui::ColorEdit3("m.diffuse", glm::value_ptr(m_material.attribute.diffuse));
-            ImGui::ColorEdit3("m.specular", glm::value_ptr(m_material.attribute.specular));
+            ImGui::ColorEdit3("m.ambient", ft::value_ptr(m_material.attribute.ambient));
+            ImGui::ColorEdit3("m.diffuse", ft::value_ptr(m_material.attribute.diffuse));
+            ImGui::ColorEdit3("m.specular", ft::value_ptr(m_material.attribute.specular));
             ImGui::DragFloat("m.shininess", &m_material.attribute.shininess, 1.0f, 1.0f, 256.0f);
         }
         ImGui::Checkbox("animation", &m_animation);
@@ -140,14 +140,15 @@ void Context::Render(std::unique_ptr<Parse> &parse)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 
-    m_cameraFront = glm::rotate(glm::mat4(1.0f), glm::radians(m_cameraYaw), glm::vec3(0.0f, 1.0f, 0.0f)) *
-                    glm::rotate(glm::mat4(1.0f), glm::radians(m_cameraPitch), glm::vec3(1.0f, 0.0f, 0.0f)) *
-                    glm::vec4(0.0f, 0.0f, -1.0f, 0.0f); // 방향벡터
+    auto cameraFront = ft::rotate(ft::mat4(1.0f), ft::radians(m_cameraYaw), ft::vec3(0.0f, 1.0f, 0.0f)) *
+                       ft::rotate(ft::mat4(1.0f), ft::radians(m_cameraPitch), ft::vec3(1.0f, 0.0f, 0.0f)) *
+                       ft::vec4(0.0f, 0.0f, -1.0f, 0.0f); // 방향벡터
+    m_cameraFront = ft::vec3(cameraFront.x, cameraFront.y, cameraFront.z);
 
     /* 카메라 파라미터! */
-    auto projection = glm::perspective(glm::radians(45.0f), (float)m_width / (float)m_height, 0.01f, 50.0f);
+    auto projection = ft::perspective(ft::radians(45.0f), (float)m_width / (float)m_height, 0.01f, 50.0f);
 
-    auto view = glm::lookAt(m_cameraPos, m_cameraPos + m_cameraFront, m_cameraUp);
+    auto view = ft::lookAt(m_cameraPos, m_cameraPos + m_cameraFront, m_cameraUp);
 
     m_program->Use();
     m_program->SetUniform("viewPos", m_cameraPos);
@@ -166,10 +167,11 @@ void Context::Render(std::unique_ptr<Parse> &parse)
     glActiveTexture(GL_TEXTURE0); // texture를 shader 통해서 active
     m_material.texDiffuse->Bind();
 
-    auto model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -10.0f));
-    auto angle = glm::radians((m_animation ? (float)glfwGetTime() : 0.0f) * 120.0f);
+    auto model = ft::translate(ft::mat4(1.0f), ft::vec3(0.0f, 0.0f, -10.0f));
+    auto angle = ft::radians((m_animation ? (float)glfwGetTime() : 0.0f) * 120.0f);
 
-    model = glm::rotate(model, angle, glm::vec3(0.0f, 1.0f, 0.0f));
+    // model = ft::rotate(model, angle, ft::vec3(0.0f, 1.0f, 0.0f));
+    model = ft::rotate(model, angle, ft::vec3(0.0f, 1.0f, 0.0f));
     auto transform = projection * view * model;
 
     m_program->SetUniform("transform", transform);

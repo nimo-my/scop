@@ -23,8 +23,10 @@ std::unique_ptr<float[]> Parse::Parser(std::string filename)
         {
             float vert1 = 0.0f, vert2 = 0.0f, vert3 = 0.0f;
             ss >> vert1 >> vert2 >> vert3;
-            glm::vec3 buffer;
+            ft::vec3 buffer;
 
+            // for center 맞추기(1)
+            getMinMaxValue(vert1, vert2, vert3);
             buffer[0] = vert1;
             buffer[1] = vert2;
             buffer[2] = vert3;
@@ -35,7 +37,7 @@ std::unique_ptr<float[]> Parse::Parser(std::string filename)
         {
             float vn1 = 0.0f, vn2 = 0.0f, vn3 = 0.0f;
             ss >> vn1 >> vn2 >> vn3;
-            glm::vec3 buffer;
+            ft::vec3 buffer;
             buffer[0] = vn1;
             buffer[1] = vn2;
             buffer[2] = vn3;
@@ -46,7 +48,7 @@ std::unique_ptr<float[]> Parse::Parser(std::string filename)
             float vt1 = 0.0f, vt2 = 0.0f;
             ss >> vt1 >> vt2;
 
-            glm::vec2 buffer;
+            ft::vec2 buffer;
             buffer[0] = vt1;
             buffer[1] = vt2;
             this->vertexTexCoord.push_back(buffer);
@@ -61,12 +63,12 @@ std::unique_ptr<float[]> Parse::Parser(std::string filename)
             // faces가 3개인 경우와 4개인 경우 분기점
             if (vertexIdx4 == "")
             {
-                this->faces.push_back(glm::vec3{stoi(vertexIdx1), stoi(vertexIdx2), stoi(vertexIdx3)});
+                this->faces.push_back(ft::vec3{stof(vertexIdx1), stof(vertexIdx2), stof(vertexIdx3)});
             }
             else
             {
-                this->faces.push_back(glm::vec3{stoi(vertexIdx1), stoi(vertexIdx2), stoi(vertexIdx3)});
-                this->faces.push_back(glm::vec3{stoi(vertexIdx1), stoi(vertexIdx3), stoi(vertexIdx4)});
+                this->faces.push_back(ft::vec3{stof(vertexIdx1), stof(vertexIdx2), stof(vertexIdx3)});
+                this->faces.push_back(ft::vec3{stof(vertexIdx1), stof(vertexIdx3), stof(vertexIdx4)});
             }
         }
         else if (typePrefix == "mtllib")
@@ -74,8 +76,33 @@ std::unique_ptr<float[]> Parse::Parser(std::string filename)
         typePrefix.clear();
     }
 
+    // center 맞추기(2)
+    centerizeObj((vertexXMax + vertexXMin) / 2, (vertexYMax + vertexYMin) / 2, (vertexZMax + vertexZMin) / 2);
+
     file.close();
     return (makeVBO());
+}
+
+void Parse::centerizeObj(float xDist, float yDist, float zDist)
+{
+    for (size_t i = 0; i < vertexPosition.size(); i++)
+    {
+        vertexPosition[i].x -= xDist;
+        vertexPosition[i].y -= yDist;
+        vertexPosition[i].z -= zDist;
+    }
+}
+
+void Parse::getMinMaxValue(float vertexX, float vertexY, float vertexZ)
+{
+    vertexXMin = vertexXMin < vertexX ? vertexXMin : vertexX;
+    vertexXMax = vertexXMax > vertexX ? vertexXMax : vertexX;
+
+    vertexYMin = vertexYMin < vertexY ? vertexYMin : vertexY;
+    vertexYMax = vertexYMax > vertexY ? vertexYMax : vertexY;
+
+    vertexZMin = vertexZMin < vertexZ ? vertexZMin : vertexZ;
+    vertexZMax = vertexZMax > vertexZ ? vertexZMax : vertexZ;
 }
 
 std::vector<size_t> Parse::splitSlash(std::string chunk)
@@ -175,11 +202,11 @@ void Parse::parseMtlFile()
 
 void Parse::makeTexture()
 {
-    glm::vec2 max = glm::vec2();
-    glm::vec2 min = glm::vec2();
+    ft::vec2 max = ft::vec2();
+    ft::vec2 min = ft::vec2();
 
     // y 축 하나 없애기 -> x의 Min, max, z의 min, max 구하기 (vertex 돌면서)
-    for (glm::vec3 vec : vertexPosition)
+    for (ft::vec3 vec : vertexPosition)
     {
         max[0] = max[0] > vec[0] ? max[0] : vec[0]; // x축 max
         max[1] = max[1] > vec[1] ? max[1] : vec[1]; // y축 max
@@ -196,7 +223,7 @@ void Parse::makeTexture()
     // 나온 값을 정규화(클리핑) 공식에 대입하기 (min-max scaler)
     // 나온 값을 vertexTexture 에 넣기
     vertexTexCoord.clear();
-    vertexTexCoord.assign(vertexPosition.size(), glm::vec2());
+    vertexTexCoord.assign(vertexPosition.size(), ft::vec2());
     for (int vertexIdx = 0; vertexIdx < vertexPosition.size(); vertexIdx++)
     {
         vertexTexCoord[vertexIdx].x = (vertexPosition[vertexIdx].x - xMin) / xLength;
@@ -207,15 +234,15 @@ void Parse::makeTexture()
 void Parse::makeVertexNormal()
 {
     vertexNormal.clear();
-    vertexNormal.assign(vertexPosition.size(), glm::vec3());
+    vertexNormal.assign(vertexPosition.size(), ft::vec3());
 
-    for (glm::vec3 line : faces) // line : v의 index number(삼각형으로 쪼개준 상태)
+    for (ft::vec3 line : faces) // line : v의 index number(삼각형으로 쪼개준 상태)
     {
         normalizing(line); // make vertex normal
     }
-    for (glm::vec3 &vn : vertexNormal)
+    for (ft::vec3 &vn : vertexNormal)
     {
-        vn = glm::normalize(vn);
+        vn = ft::normalize(vn);
     }
 }
 
@@ -254,18 +281,18 @@ std::unique_ptr<float[]> Parse::makeVBO()
     return (std::move(VBO));
 }
 
-void Parse::normalizing(glm::vec3 facesLine) // v 5 7 1
+void Parse::normalizing(ft::vec3 facesLine) // v 5 7 1
 {
     // 점 3개
-    glm::vec3 v1 = vertexPosition[facesLine[0] - 1];
-    glm::vec3 v2 = vertexPosition[facesLine[1] - 1];
-    glm::vec3 v3 = vertexPosition[facesLine[2] - 1];
+    ft::vec3 v1 = vertexPosition[facesLine[0] - 1];
+    ft::vec3 v2 = vertexPosition[facesLine[1] - 1];
+    ft::vec3 v3 = vertexPosition[facesLine[2] - 1];
 
     // 두 점끼리 이어서 벡터를 만듦
-    glm::vec3 vec1 = {v2[0] - v1[0], v2[1] - v1[1], v2[2] - v1[2]};
-    glm::vec3 vec2 = {v3[0] - v1[0], v3[1] - v1[1], v3[2] - v1[2]};
+    ft::vec3 vec1 = {v2[0] - v1[0], v2[1] - v1[1], v2[2] - v1[2]};
+    ft::vec3 vec2 = {v3[0] - v1[0], v3[1] - v1[1], v3[2] - v1[2]};
 
-    glm::vec3 normal = glm::normalize(glm::cross(vec1, vec2));
+    ft::vec3 normal = ft::normalize(ft::cross(vec1, vec2));
 
     vertexNormal[facesLine[0] - 1] += normal;
     vertexNormal[facesLine[1] - 1] += normal;

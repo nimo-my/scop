@@ -10,7 +10,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
+#include "mathlib/Common.h"
+#include "mathlib/Value_ptr.h"
 
 #define CLASS_PTR(klassName) \
 class klassName; \
