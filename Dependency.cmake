@@ -13,12 +13,15 @@ ExternalProject_Add(
     GIT_REPOSITORY "https://github.com/gabime/spdlog.git"
     GIT_TAG "v1.x" #태그(특정 버전 지정)이름, 브랜치 정보
     GIT_SHALLOW 1 #shallow : 활성화(1)되면 가장 최신의 것만 다운로드
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${DEP_INSTALL_DIR} #cmake configure 할때 넣는 인자, -D: definition, 뒤에는 cmake가 지정한 변수
+    UPDATE_COMMAND ""
+    PATCH_COMMAND ""
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${DEP_INSTALL_DIR} #cmake configure 할때 넣는 인자, -D: definition
+    TEST_COMMAND ""
 )
 # Dependency 리스트 및 라이브러리 파일 리스트 추가
 set(DEP_LIST ${DEP_LIST} dep_spdlog)
 
-# OS 별 생성 파일의 이름이 .lib 와 .a로 다름. Mac 기준에 맞춰서 해당 디렉토리에 있는 링크 맞춰주기.
+# OS 별 생성 파일이 .lib 와 .a 파일로 달라지므로, Mac 기준에 맞춰서 해당 디렉토리에 있는 링크를 제대로 맞춰줌.
 if (APPLE)
     set(DEP_LIBS ${DEP_LIBS} libspdlog.a)
 endif()
@@ -32,6 +35,9 @@ ExternalProject_Add(
     GIT_REPOSITORY "https://github.com/glfw/glfw.git"
     GIT_TAG "3.3.8"
     GIT_SHALLOW 1
+    UPDATE_COMMAND ""
+    PATCH_COMMAND ""
+    TEST_COMMAND ""
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX=${DEP_INSTALL_DIR}
         -DGLFW_BUILD_EXAMPLES=OFF
@@ -48,10 +54,13 @@ ExternalProject_Add(
     GIT_REPOSITORY "https://github.com/Dav1dde/glad"
     GIT_TAG "v0.1.34"
     GIT_SHALLOW 1
+    UPDATE_COMMAND ""
+    PATCH_COMMAND ""
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX=${DEP_INSTALL_DIR}
         -DGLAD_INSTALL=ON
-)
+    TEST_COMMAND ""
+    )
 set(DEP_LIST ${DEP_LIST} dep_glad)
 set(DEP_LIBS ${DEP_LIBS} glad)
 
