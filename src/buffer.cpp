@@ -1,35 +1,33 @@
 #include "buffer.h"
 
-BufferUPtr Buffer::CreateWithData(uint32_t bufferType, uint32_t usage, 
-                                    const void* data, size_t stride, size_t count)
+BufferUPtr Buffer::CreateWithData(uint32_t bufferType, uint32_t usage, const void *data, size_t dataSize)
 {
     auto buffer = BufferUPtr(new Buffer());
-    if (!buffer->Init(bufferType, usage, data, stride, count))
+    if (!buffer->Init(bufferType, usage, data, dataSize))
         return nullptr;
     return std::move(buffer);
 }
 
-Buffer::~Buffer() 
+Buffer::~Buffer()
 {
-    if (m_buffer) 
+    if (m_buffer)
     {
         glDeleteBuffers(1, &m_buffer);
     }
 }
 
-void Buffer::Bind() const 
+void Buffer::Bind() const
 {
     glBindBuffer(m_bufferType, m_buffer);
 }
 
-bool Buffer::Init(uint32_t bufferType, uint32_t usage, const void* data, size_t stride, size_t count) 
+bool Buffer::Init(uint32_t bufferType, uint32_t usage, const void *data, size_t dataSize)
 {
     m_bufferType = bufferType;
     m_usage = usage;
-    m_stride = stride;
-    m_count = count;
+    // glGenBuffers : generate buffer object names
     glGenBuffers(1, &m_buffer);
     Bind();
-    glBufferData(m_bufferType, m_stride * m_count, data, usage);
+    glBufferData(m_bufferType, dataSize, data, usage);
     return true;
 }

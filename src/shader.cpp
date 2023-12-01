@@ -1,7 +1,7 @@
 #include "shader.h"
 // #include "spdlog/spdlog.h"
 
-ShaderUPtr Shader::CreateFromFile(const std::string& filename, GLenum shaderType)
+ShaderUPtr Shader::CreateFromFile(const std::string &filename, GLenum shaderType)
 {
     auto shader = std::unique_ptr<Shader>(new Shader());
     if (!shader->LoadFile(filename, shaderType))
@@ -17,21 +17,34 @@ Shader::~Shader()
     }
 }
 
-bool Shader::LoadFile(const std::string& filename, GLenum shaderType)
+std::optional<std::string> Shader::LoadTextFile(const std::string &filename)
 {
-    // file loading (return : optional, 값이 있을수도 있고 없을 수도 있음! )
+    std::ifstream fin(filename);
+    if (!fin.is_open())
+    {
+        std::cout << "failed to open file: {}" << filename << std::endl;
+        return {};
+    }
+    std::stringstream text;
+    text << fin.rdbuf();
+    return text.str();
+}
+
+bool Shader::LoadFile(const std::string &filename, GLenum shaderType)
+{
+    // file loading (return : optional, 값이 있을수도 있고 없을 수도 있음!)
     auto result = LoadTextFile(filename);
     if (!result.has_value())
         return false;
-    
+
     // value에 뭐가 얼마나 들어올지 모르니까 레퍼런스 붙여주기!
-    auto& code = result.value();
-    const char* codePtr = code.c_str();
+    auto &code = result.value();
+    const char *codePtr = code.c_str();
     int32_t codeLength = (int32_t)code.length();
 
     // [create & compile shader]
     m_shader = glCreateShader(shaderType);
-    glShaderSource(m_shader, 1, (const GLchar* const*)&codePtr, &codeLength);
+    glShaderSource(m_shader, 1, (const GLchar *const *)&codePtr, &codeLength);
     glCompileShader(m_shader);
 
     // [check compile shader]

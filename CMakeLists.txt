@@ -1,4 +1,4 @@
-# CMake 최소 버전 명시.
+# CMake 최소 버전 명시
 cmake_minimum_required(VERSION 3.26.4)
 
 # 프로젝트 이름 및 버전 명시
@@ -12,7 +12,7 @@ set(WINDOW_NAME "scop")
 set(WINDOW_WIDTH 960)
 set(WINDOW_HEIGHT 640)
 
-# Mac에서 돌릴때 필요한 추가적인 Flag들.
+# Mac에서 돌릴때 필요한 추가적인 Flag들
 if (APPLE)
     set(CMAKE_CXX_FLAGS "-framework Cocoa -framework IOKit -framework OpenGL")
 endif()
@@ -25,7 +25,7 @@ project(${PROJECT_NAME})
 # 실행파일의 이름 설정
 add_executable(${PROJECT_NAME} 
     src/main.cpp
-    src/common.cpp src/common.h
+    src/common.h
     src/shader.cpp src/shader.h
     src/program.cpp src/program.h
     src/context.cpp src/context.h
@@ -33,14 +33,22 @@ add_executable(${PROJECT_NAME}
     src/vertex_layout.cpp src/vertex_layout.h
     src/image.cpp src/image.h
     src/texture.cpp src/texture.h
-    src/mesh.cpp src/mesh.h
-    src/model.cpp src/model.h
+    src/parse.cpp src/parse.h
+
+    src/mathlib/Common.cpp src/mathlib/Common.h
+    src/mathlib/Mat2x2.cpp src/mathlib/Mat2x2.h
+    src/mathlib/Mat3x3.cpp src/mathlib/Mat3x3.h
+    src/mathlib/Mat4x4.cpp src/mathlib/Mat4x4.h
+    src/mathlib/Value_ptr.cpp src/mathlib/Value_ptr.h
+    src/mathlib/Vector2.cpp src/mathlib/Vector2.h
+    src/mathlib/Vector3.cpp src/mathlib/Vector3.h
+    src/mathlib/Vector4.cpp src/mathlib/Vector4.h
 )
 
 # ExternalProject 관련 명령어 셋 추가
 include(Dependency.cmake)
 
-# 우리 프로젝트에 include / lib 관련 옵션 추가
+# 프로젝트에 include / lib 관련 옵션 추가
 target_include_directories(${PROJECT_NAME} PUBLIC ${DEP_INCLUDE_DIR})
 target_link_directories(${PROJECT_NAME} PUBLIC ${DEP_LIB_DIR})
 target_link_libraries(${PROJECT_NAME} PUBLIC ${DEP_LIBS})
@@ -51,5 +59,3 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC
     WINDOW_WIDTH=${WINDOW_WIDTH}
     WINDOW_HEIGHT=${WINDOW_HEIGHT}
 )
-
-# Dependency들이 먼저 build 될 수 있게 관계 설정
