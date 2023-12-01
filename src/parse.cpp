@@ -77,7 +77,10 @@ std::unique_ptr<float[]> Parse::Parser(std::string filename)
     }
 
     // center 맞추기(2)
-    centerizeObj((vertexXMax + vertexXMin) / 2, (vertexYMax + vertexYMin) / 2, (vertexZMax + vertexZMin) / 2);
+    auto xDist = ((vertexXMax + vertexXMin) / 2.0f);
+    auto yDist = ((vertexYMax + vertexYMin) / 2.0f);
+    auto zDist = ((vertexZMax + vertexZMin) / 2.0f);
+    centerizeObj(xDist, yDist, zDist);
 
     file.close();
     return (makeVBO());

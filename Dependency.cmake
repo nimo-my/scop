@@ -1,4 +1,3 @@
-# ExternalProject 관련 기능을 사용하기 위해 명령어 셋 추가
 include(ExternalProject)
 
 # Dependency 관련 변수 설정
@@ -9,7 +8,7 @@ set(DEP_LIB_DIR ${DEP_INSTALL_DIR}/lib)
 # spdlog: fast logger library
 # spdlog를 다운받아서 가져옴. 로그를 보는데 용이.
 ExternalProject_Add(
-    dep_spdlog #대표 이름, build 폴더 안에 생기는 폴더의 이름
+    dep_spdlog
     GIT_REPOSITORY "https://github.com/gabime/spdlog.git"
     GIT_TAG "v1.x" #태그(특정 버전 지정)이름, 브랜치 정보
     GIT_SHALLOW 1 #shallow : 활성화(1)되면 가장 최신의 것만 다운로드
@@ -18,6 +17,7 @@ ExternalProject_Add(
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${DEP_INSTALL_DIR} #cmake configure 할때 넣는 인자, -D: definition
     TEST_COMMAND ""
 )
+
 # Dependency 리스트 및 라이브러리 파일 리스트 추가
 set(DEP_LIST ${DEP_LIST} dep_spdlog)
 
@@ -64,7 +64,45 @@ ExternalProject_Add(
 set(DEP_LIST ${DEP_LIST} dep_glad)
 set(DEP_LIBS ${DEP_LIBS} glad)
 
-# imgui
+# stb 설치
+ExternalProject_Add(
+    dep_stb
+    GIT_REPOSITORY "https://github.com/nothings/stb"
+    GIT_TAG "master"
+    GIT_SHALLOW 1
+    UPDATE_COMMAND ""
+    PATCH_COMMAND ""
+    # 헤더파일만 가져오기에 build 와 configure를 막아둔다.
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    TEST_COMMAND ""
+    # 대신 install command를 따로 지정한다.
+    # ${CMAKE_COMMAND} -E copy 로 stb_image.h를 복사하기에, cmake 명령어를 통해 사용해서 os간 차이가 없게끔 한다.
+    INSTALL_COMMAND ${CMAKE_COMMAND} -E copy
+        ${PROJECT_BINARY_DIR}/dep_stb-prefix/src/dep_stb/stb_image.h
+        ${DEP_INSTALL_DIR}/include/stb/stb_image.h
+)
+set(DEP_LIST ${DEP_LIST} dep_stb)
+
+# glm
+ExternalProject_Add(
+    dep_glm
+    GIT_REPOSITORY "https://github.com/g-truc/glm"
+    GIT_TAG "0.9.9.8"
+    GIT_SHALLOW 1
+    UPDATE_COMMAND ""
+    PATCH_COMMAND ""
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    TEST_COMMAND ""
+    # 위의 stb library를 추가한 방식과 동일하게 가져오나, copy_directory를 통해 디렉토리 자체를 복사해온다.
+    INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${PROJECT_BINARY_DIR}/dep_glm-prefix/src/dep_glm/glm
+        ${DEP_INSTALL_DIR}/include/glm
+)
+
+set(DEP_LIST ${DEP_LIST} dep_glm)
+
 include(FetchContent)
 FetchContent_Declare(
         dep_imgui

@@ -63,7 +63,7 @@ std::unique_ptr<Parse> Context::Init()
     std::unique_ptr<Parse> parse(new Parse());
 
     std::string objFileName = "./resorces/";
-    objFileName += "teapot"; // NOTE : insert file name
+    objFileName += "42"; // NOTE : insert file name
     parse->setFileName(objFileName);
     objFileName += ".obj";
 
