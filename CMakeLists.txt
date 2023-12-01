@@ -19,7 +19,6 @@ endif()
 
 set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "" FORCE) # close DEPRECATION WARNING...
 
-
 # 프로젝트 이름 설정
 project(${PROJECT_NAME})
 # 실행파일의 이름 설정
