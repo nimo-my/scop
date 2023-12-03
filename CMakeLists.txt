@@ -19,6 +19,7 @@ endif()
 
 set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "" FORCE) # close DEPRECATION WARNING...
 
+
 # 프로젝트 이름 설정
 project(${PROJECT_NAME})
 # 실행파일의 이름 설정
@@ -47,7 +48,7 @@ add_executable(${PROJECT_NAME}
 # ExternalProject 관련 명령어 셋 추가
 include(Dependency.cmake)
 
-# 우리 프로젝트에 include / lib 관련 옵션 추가
+# 프로젝트에 include / lib 관련 옵션 추가
 target_include_directories(${PROJECT_NAME} PUBLIC ${DEP_INCLUDE_DIR})
 target_link_directories(${PROJECT_NAME} PUBLIC ${DEP_LIB_DIR})
 target_link_libraries(${PROJECT_NAME} PUBLIC ${DEP_LIBS})
@@ -58,5 +59,3 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC
     WINDOW_WIDTH=${WINDOW_WIDTH}
     WINDOW_HEIGHT=${WINDOW_HEIGHT}
 )
-
-# Dependency들이 먼저 build 될 수 있게 관계 설정
