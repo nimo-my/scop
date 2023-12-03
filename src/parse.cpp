@@ -9,6 +9,7 @@ std::unique_ptr<float[]> Parse::Parser(std::string filename)
     std::ifstream file(filename);
     if (!file.is_open())
     {
+
         std::cout << "Error! :: " << filename << " can't be opened.";
         exit(1);
     }
@@ -145,7 +146,7 @@ void Parse::removeSlash(std::string &s1, std::string &s2, std::string &s3, std::
 
     for (int i = 1; i <= 4; i++)
     {
-        if (isSlash(loop[i])) // '/' 가 string 안에 있는 지 확인
+        if (isSlash(loop[i - 1])) // '/' 가 string 안에 있는 지 확인
         {
             bufferSplited = splitSlash(loop[i]);
             if (bufferSplited.size())
